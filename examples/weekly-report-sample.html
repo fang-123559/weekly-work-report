@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026-W33 工作周报 | 示例</title>
+<style>
+  :root {
+    --bg: #f0f4f8;
+    --card-bg: #ffffff;
+    --primary: #2563eb;
+    --primary-light: #3b82f6;
+    --primary-dark: #1d4ed8;
+    --accent: #f59e0b;
+    --text: #1e293b;
+    --text-secondary: #64748b;
+    --border: #e2e8f0;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --purple: #8b5cf6;
+    --teal: #14b8a6;
+    --gradient-start: #1e40af;
+    --gradient-end: #3b82f6;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding: 0;
+  }
+  .container { max-width: 960px; margin: 0 auto; padding: 20px; }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #1e3a8a, #3b82f6 55%, #60a5fa);
+    color: #fff;
+    padding: 52px 0 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -60%;
+    left: -30%;
+    width: 160%;
+    height: 200%;
+    background: radial-gradient(circle at 25% 40%, rgba(255,255,255,0.10) 0%, transparent 45%),
+                radial-gradient(circle at 80% 60%, rgba(255,255,255,0.08) 0%, transparent 40%);
+    pointer-events: none;
+  }
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 700px;
+    height: 80px;
+    background: radial-gradient(ellipse at center, rgba(255,255,255,0.12) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .header h1 { font-size: 32px; font-weight: 700; letter-spacing: 2px; margin-bottom: 6px; position: relative; }
+  .header .subtitle { font-size: 16px; opacity: 0.92; position: relative; }
+  .header .date-range {
+    display: inline-block;
+    background: rgba(255,255,255,0.16);
+    padding: 6px 20px;
+    border-radius: 20px;
+    margin-top: 14px;
+    font-size: 14px;
+    backdrop-filter: blur(4px);
+    position: relative;
+  }
+  .header .week-badge {
+    display: inline-block;
+    background: var(--accent);
+    color: #1e293b;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 4px 12px;
+    border-radius: 4px;
+    margin-left: 8px;
+  }
+
+  /* Cards */
+  .card {
+    background: var(--card-bg);
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    padding: 28px;
+    margin-bottom: 24px;
+    transition: box-shadow 0.2s ease;
+    border: 1px solid var(--border);
+  }
+  .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+  .card-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--primary-dark);
+  }
+  .card-title .icon { font-size: 22px; }
+
+  /* Stats Grid */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--card-bg);
+    border-radius: 14px;
+    padding: 22px;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    border: 1px solid var(--border);
+    transition: transform 0.2s ease;
+  }
+  .stat-card:hover { transform: translateY(-2px); }
+  .stat-card .stat-icon { font-size: 28px; margin-bottom: 8px; }
+  .stat-card .stat-value { font-size: 32px; font-weight: 700; color: var(--primary); }
+  .stat-card .stat-label { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+  .stat-card.highlight .stat-value { color: var(--accent); }
+  .stat-card.success .stat-value { color: var(--success); }
+  .stat-card.danger .stat-value { color: var(--danger); }
+
+  /* Heatmap (week calendar) */
+  .week-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+  }
+  .week-cell {
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 8px;
+    text-align: center;
+    min-height: 86px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+  }
+  .week-cell .day-name { font-size: 12px; color: var(--text-secondary); font-weight: 600; }
+  .week-cell .day-date { font-size: 11px; color: var(--text-secondary); opacity: 0.8; }
+  .week-cell .status { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px; }
+  .week-cell.work { background: #eff6ff; border-color: #bfdbfe; }
+  .week-cell.work .status { background: var(--primary-light); color: #fff; }
+  .week-cell.miss { background: #fef2f2; border-color: #fecaca; }
+  .week-cell.miss .status { background: #fee2e2; color: #b91c1c; }
+  .week-cell.weekend { background: #f1f5f9; border-color: var(--border); }
+  .week-cell.weekend .status { background: #e2e8f0; color: var(--text-secondary); }
+  .week-cell .brief { font-size: 10px; color: var(--text-secondary); line-height: 1.3; margin-top: 2px; }
+
+  /* Bar chart */
+  .bar-chart { display: flex; flex-direction: column; gap: 14px; }
+  .bar-row { display: flex; align-items: center; gap: 12px; }
+  .bar-label { width: 110px; font-size: 13px; color: var(--text); font-weight: 500; text-align: right; flex-shrink: 0; }
+  .bar-track { flex: 1; background: #f1f5f9; border-radius: 8px; height: 26px; overflow: hidden; position: relative; }
+  .bar-fill {
+    height: 100%;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    min-width: 40px;
+    transition: width 0.8s ease;
+  }
+  .bar-fill.blue { background: linear-gradient(90deg, #3b82f6, #2563eb); }
+  .bar-fill.teal { background: linear-gradient(90deg, #14b8a6, #0d9488); }
+  .bar-fill.orange { background: linear-gradient(90deg, #f59e0b, #d97706); }
+  .bar-fill.gray { background: linear-gradient(90deg, #94a3b8, #64748b); }
+
+  /* Trend chart */
+  .trend-chart { display: flex; align-items: flex-end; gap: 14px; height: 200px; padding: 10px 6px 0; }
+  .trend-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 6px; }
+  .trend-bar-wrap { display: flex; align-items: flex-end; height: 170px; }
+  .trend-bar {
+    width: 40px;
+    border-radius: 8px 8px 0 0;
+    position: relative;
+    transition: height 0.8s ease;
+  }
+  .trend-bar.b1 { background: linear-gradient(180deg, #94a3b8, #64748b); }
+  .trend-bar.b2 { background: linear-gradient(180deg, #f59e0b, #d97706); }
+  .trend-bar.b3 { background: linear-gradient(180deg, #3b82f6, #2563eb); }
+  .trend-bar .val {
+    position: absolute;
+    top: -24px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .trend-col .lbl { font-size: 12px; color: var(--text-secondary); }
+  .trend-col.current .lbl { font-weight: 700; color: var(--primary); }
+
+  /* Timeline */
+  .timeline { position: relative; padding-left: 28px; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 6px;
+    bottom: 6px;
+    width: 3px;
+    background: linear-gradient(180deg, #3b82f6, #93c5fd);
+    border-radius: 2px;
+  }
+  .tl-item { position: relative; margin-bottom: 24px; }
+  .tl-item:last-child { margin-bottom: 0; }
+  .tl-item::before {
+    content: '';
+    position: absolute;
+    left: -25px;
+    top: 6px;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: #fff;
+    border: 3px solid var(--primary);
+  }
+  .tl-item.miss::before { border-color: #fca5a5; background: #fef2f2; }
+  .tl-item.weekend::before { border-color: #94a3b8; background: #f1f5f9; }
+  .tl-date { font-size: 14px; font-weight: 600; color: var(--primary-dark); margin-bottom: 6px; }
+  .tl-date .tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 10px;
+    border-radius: 10px;
+    margin-left: 8px;
+    vertical-align: 2px;
+  }
+  .tag.work { background: #dbeafe; color: #1d4ed8; }
+  .tag.miss { background: #fee2e2; color: #b91c1c; }
+  .tag.weekend { background: #e2e8f0; color: #64748b; }
+  .tag.tech { background: #ede9fe; color: #6d28d9; }
+  .tl-content { font-size: 14px; color: var(--text); }
+  .tl-content p { margin-bottom: 4px; }
+  .tl-content .sub { color: var(--text-secondary); font-size: 13px; }
+  .tl-content ul { padding-left: 18px; margin-top: 4px; }
+  .tl-content li { margin-bottom: 3px; }
+
+  /* Activity grid */
+  .activity-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+  }
+  .activity-item {
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .activity-item .a-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .activity-item .a-icon.blue { background: #dbeafe; }
+  .activity-item .a-icon.teal { background: #ccfbf1; }
+  .activity-item .a-icon.orange { background: #fef3c7; }
+  .activity-item .a-icon.purple { background: #ede9fe; }
+  .activity-item .a-info { flex: 1; }
+  .activity-item .a-name { font-size: 14px; font-weight: 600; }
+  .activity-item .a-count { font-size: 12px; color: var(--text-secondary); }
+
+  /* Highlight list */
+  .highlight-list { list-style: none; }
+  .highlight-list li {
+    padding: 12px 14px;
+    border-left: 4px solid var(--primary-light);
+    background: #f8fafc;
+    border-radius: 0 10px 10px 0;
+    margin-bottom: 10px;
+    font-size: 14px;
+  }
+  .highlight-list li .h-title { font-weight: 600; color: var(--primary-dark); }
+  .highlight-list li .h-desc { color: var(--text-secondary); font-size: 13px; margin-top: 2px; }
+  .highlight-list li.gold { border-left-color: var(--accent); }
+  .highlight-list li.green { border-left-color: var(--success); }
+  .highlight-list li.purple { border-left-color: var(--purple); }
+
+  /* Plan list */
+  .plan-list { list-style: none; }
+  .plan-list li {
+    display: flex;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px dashed var(--border);
+    font-size: 14px;
+    align-items: flex-start;
+  }
+  .plan-list li:last-child { border-bottom: none; }
+  .plan-priority {
+    flex-shrink: 0;
+    width: 26px; height: 26px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; color: #fff;
+  }
+  .plan-priority.p1 { background: var(--danger); }
+  .plan-priority.p2 { background: var(--warning); }
+  .plan-priority.p3 { background: var(--success); }
+  .plan-title { font-weight: 600; }
+  .plan-desc { color: var(--text-secondary); font-size: 13px; margin-top: 2px; }
+
+  /* Note box */
+  .note-box {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-left: 4px solid var(--warning);
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 13px;
+    color: #92400e;
+    margin-top: 12px;
+  }
+  .note-box.info {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    border-left-color: var(--primary);
+    color: #1e40af;
+  }
+  .note-box.success {
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+    border-left-color: var(--success);
+    color: #065f46;
+  }
+
+  .divider { height: 1px; background: var(--border); margin: 18px 0; }
+
+  .footer {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 12px;
+    padding: 24px 0 40px;
+  }
+
+  @media (max-width: 640px) {
+    .container { padding: 12px; }
+    .header h1 { font-size: 24px; }
+    .week-grid { grid-template-columns: repeat(4, 1fr); }
+    .bar-label { width: 80px; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📋 2026年第33周 工作周报</h1>
+  <div class="subtitle">Work Weekly Report</div>
+  <div class="date-range">📅 2026-08-10（周一） 至 2026-08-16（周日）<span class="week-badge">W33</span></div>
+</div>
+
+<div class="container">
+
+  <!-- 统计卡片 -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">📅</div>
+      <div class="stat-value">3天</div>
+      <div class="stat-label">工作日记录</div>
+    </div>
+    <div class="stat-card highlight">
+      <div class="stat-icon">📋</div>
+      <div class="stat-value">100%</div>
+      <div class="stat-label">项目管理占比</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🏆</div>
+      <div class="stat-value">7项</div>
+      <div class="stat-label">关键工作事项</div>
+    </div>
+    <div class="stat-card danger">
+      <div class="stat-icon">⚠️</div>
+      <div class="stat-value">3天</div>
+      <div class="stat-label">无记录天数</div>
+    </div>
+  </div>
+
+  <!-- 周历热力图 -->
+  <div class="card">
+    <div class="card-title"><span class="icon">🗓️</span>一周概览（周历热力图）</div>
+    <div class="week-grid">
+      <div class="week-cell work">
+        <div class="day-name">周一</div>
+        <div class="day-date">08/10</div>
+        <div class="status">✅ 已记录</div>
+        <div class="brief">会审资料·签字·商机</div>
+      </div>
+      <div class="week-cell work">
+        <div class="day-name">周二</div>
+        <div class="day-date">08/10</div>
+        <div class="status">✅ 已记录</div>
+        <div class="brief">会审资料·签字·商机</div>
+      </div>
+      <div class="week-cell work">
+        <div class="day-name">周三</div>
+        <div class="day-date">08/10</div>
+        <div class="status">✅ 已记录</div>
+        <div class="brief">会审资料·签字·商机</div>
+      </div>
+      <div class="week-cell miss">
+        <div class="day-name">周四</div>
+        <div class="day-date">08/10</div>
+        <div class="status">⚠️ 暂无记录</div>
+      </div>
+      <div class="week-cell miss">
+        <div class="day-name">周五</div>
+        <div class="day-date">08/10</div>
+        <div class="status">⚠️ 暂无记录</div>
+      </div>
+      <div class="week-cell weekend">
+        <div class="day-name">周六</div>
+        <div class="day-date">08/10</div>
+        <div class="status">— 周末</div>
+      </div>
+      <div class="week-cell weekend">
+        <div class="day-name">周日</div>
+        <div class="day-date">08/10</div>
+        <div class="status">— 周末</div>
+      </div>
+    </div>
+    <div class="note-box info">📌 本周仅周一至周三有工作日志，周四、周五无记录。</div>
+  </div>
+
+  <!-- 工作类型分布 -->
+  <div class="card">
+    <div class="card-title"><span class="icon">📊</span>工作类型分布</div>
+    <div class="bar-chart">
+      <div class="bar-row">
+        <div class="bar-label">📋 项目管理</div>
+        <div class="bar-track">
+          <div class="bar-fill blue" style="width: 100%;">100% · 3天</div>
+        </div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">🛡️ 治安监控维护</div>
+        <div class="bar-track">
+          <div class="bar-fill green" style="width: 100%;">100% · 3天</div>
+        </div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">🎥 现场监控调试</div>
+        <div class="bar-track">
+          <div class="bar-fill gray" style="width: 0%;"></div>
+        </div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">🔧 其他工作</div>
+        <div class="bar-track">
+          <div class="bar-fill orange" style="width: 6%;">7项</div>
+        </div>
+      </div>
+    </div>
+    <div class="note-box">💡 本周工作聚焦项目管理事务（流程、签字、资料、商务）。</div>
+  </div>
+
+  <!-- 详细工作内容 -->
+  <div class="card">
+    <div class="card-title"><span class="icon">📋</span>详细工作内容（按日）</div>
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-date">8月10日（周一）<span class="tag work">📋 项目管理</span></div>
+        <div class="tl-content">
+          <p><strong>会审资料 + 签字盖章 + 商务流程</strong></p>
+          <ul>
+            <li><strong>上午</strong>：前往客户单位办理签字；跟进商务流程</li>
+            <li><strong>下午</strong>：前往客户单位办理签字；跟进商务流程</li>
+          </ul>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-date">8月10日（周一）<span class="tag work">📋 项目管理</span></div>
+        <div class="tl-content">
+          <p><strong>会审资料 + 签字盖章 + 商务流程</strong></p>
+          <ul>
+            <li><strong>上午</strong>：前往客户单位办理签字；跟进商务流程</li>
+            <li><strong>下午</strong>：前往客户单位办理签字；跟进商务流程</li>
+          </ul>
+        </div>
+      </div>
+      <div class="tl-item miss">
+        <div class="tl-date">8月10日（周一）<span class="tag miss">⚠️ 暂无记录</span></div>
+        <div class="tl-content"><p class="sub">当日无工作日志，无法获取工作内容。</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 工作成果 -->
+  <div class="card">
+    <div class="card-title"><span class="icon">🏆</span>本周成果亮点</div>
+    <ul class="highlight-list">
+      <li class="gold">
+        <div class="h-title">📁 项目资料提交</div>
+        <div class="h-desc">整理项目资料并完成提交，为项目验收推进扫清障碍</div>
+      </li>
+      <li class="green">
+        <div class="h-title">✍️ 多环节签字盖章</div>
+        <div class="h-desc">整理项目资料并完成提交，为项目验收推进扫清障碍</div>
+      </li>
+      <li>
+        <div class="h-title">🧪 现场巡检</div>
+        <div class="h-desc">整理项目资料并完成提交，为项目验收推进扫清障碍</div>
+      </li>
+    </ul>
+  </div>
+
+  <!-- 活动统计 -->
+  <div class="card">
+    <div class="card-title"><span class="icon">🔢</span>工作活动统计</div>
+    <div class="activity-grid">
+      <div class="activity-item">
+        <div class="a-icon blue">📄</div>
+        <div class="a-info">
+          <div class="a-name">资料整理</div>
+          <div class="a-count">3 次</div>
+        </div>
+      </div>
+      <div class="activity-item">
+        <div class="a-icon orange">✍️</div>
+        <div class="a-info">
+          <div class="a-name">资料整理</div>
+          <div class="a-count">3 次</div>
+        </div>
+      </div>
+      <div class="activity-item">
+        <div class="a-icon teal">💼</div>
+        <div class="a-info">
+          <div class="a-name">资料整理</div>
+          <div class="a-count">3 次</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 工作资料汇总 -->
+  <div class="card">
+    <div class="card-title"><span class="icon">📷</span>工作资料汇总</div>
+    <div class="note-box info">📎 本周主要产物为流程文件与项目资料，属内部管理文档。</div>
+  </div>
+
+  <!-- 近期趋势 -->
+  <div class="card">
+    <div class="card-title"><span class="icon">📈</span>工作趋势（近五周记录天数）</div>
+    <div class="trend-chart">
+      <div class="trend-col">
+        <div class="trend-bar-wrap"><div class="trend-bar b1" style="height: 20px;"><span class="val">1</span></div></div>
+        <div class="lbl">W32</div>
+      </div>
+      <div class="trend-col">
+        <div class="trend-bar-wrap"><div class="trend-bar b2" style="height: 40px;"><span class="val">2</span></div></div>
+        <div class="lbl">W32</div>
+      </div>
+      <div class="trend-col">
+        <div class="trend-bar-wrap"><div class="trend-bar b2" style="height: 40px;"><span class="val">2</span></div></div>
+        <div class="lbl">W32</div>
+      </div>
+      <div class="trend-col">
+        <div class="trend-bar-wrap"><div class="trend-bar b3" style="height: 100px;"><span class="val">5</span></div></div>
+        <div class="lbl">W32</div>
+      </div>
+      <div class="trend-col current">
+        <div class="trend-bar-wrap"><div class="trend-bar b3" style="height: 60px;"><span class="val">3</span></div></div>
+        <div class="lbl">W33 本周</div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="note-box">📈 工作内容持续以项目管理为主线（流程、签字、资料、验收推进）。</div>
+  </div>
+
+  <!-- 本周计划 -->
+  <div class="card">
+    <div class="card-title"><span class="icon">💡</span>本周计划建议（基于上周进展）</div>
+    <ul class="plan-list">
+      <li>
+        <div class="plan-priority p1">1</div>
+        <div>
+          <div class="plan-title">恢复每日工作日志记录</div>
+          <div class="plan-desc">建议坚持当天补录，保证周报数据完整</div>
+        </div>
+      </li>
+      <li>
+        <div class="plan-priority p1">2</div>
+        <div>
+          <div class="plan-title">推进项目验收闭环</div>
+          <div class="plan-desc">建议坚持当天补录，保证周报数据完整</div>
+        </div>
+      </li>
+      <li>
+        <div class="plan-priority p2">3</div>
+        <div>
+          <div class="plan-title">保持商务流程推进节奏</div>
+          <div class="plan-desc">建议坚持当天补录，保证周报数据完整</div>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <div class="footer">
+    📋 2026年第33周工作周报 · 生成时间：2026-08-17 10:00 · WorkBuddy 自动化系统<br>
+    ⚙️ 数据来源：your-project/.workbuddy/memory/ 工作日志
+  </div>
+
+</div>
+</body>
+</html>
