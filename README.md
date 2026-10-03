@@ -16,6 +16,19 @@
 - 🎨 **现代设计**：渐变头部、卡片布局、响应式，浏览器直接查看
 - ⚙️ **可接入自动化**：配置为每周一自动执行
 
+## 🎭 模板画廊：周报的三种出版形态
+
+周报不必是仪表盘。同一份工作数据（同一个 `REPORT_DATA` 数据罐头），被当作三种读物出版——从 `templates/index.html` 进入可对比预览：
+
+| | 模板 | 隐喻 | 一句话 |
+|---|---|---|---|
+| 📰 | [editorial-ledger-sample.html](examples/editorial-ledger-sample.html) | **工作周讯** · 周一早晨的报纸 | 成果是头条，日程是一周要闻，统计是铅字数据行，计划是社论；支持打印 |
+| 🔭 | [orbit-instrument-sample.html](examples/orbit-instrument-sample.html) | **七日仪** · 一台天文仪器 | 七天是一个闭环：扇区即一天，色带即类型，虚线即缺席；可巡天、可键盘观测 |
+| 🎪 | [stage-programme-sample.html](examples/stage-programme-sample.html) | **本周上演** · 剧场节目单 | 每日一幕，上午日场下午晚场，缺席盖停演章，亮点上谢幕，计划进下季预告 |
+| 📊 | [weekly-report-template.html](templates/weekly-report-template.html) | **经典蓝色版** · 仪表盘 | 占位符版骨架，默认样式 |
+
+上方链接为脱敏示例（内置 2026-W37 演示数据，可直接下载打开）；模板源文件在 [templates/](templates/) 目录。三套新模板均为**自包含 HTML**：无外部字体、库、图片，双击即开，可离线浏览。Agent 注入数据只需替换文件内 `REPORT_DATA` 数据罐头（三套同构，可互换），统计数字自动推导。空周状态可在地址后加 `?empty=1` 预览。
+
 ## 🖼️ 效果预览
 
 <p align="center">
@@ -69,13 +82,17 @@ git clone https://github.com/fang-123559/weekly-work-report.git
 
 ```
 weekly-work-report/
-├── SKILL.md                      # Skill 核心定义（执行流程 + 异常处理 + 反例）
+├── SKILL.md                      # Skill 核心定义（执行流程 + 模板登记表 + 异常处理 + 反例）
 ├── README.md                     # 本文件
 ├── LICENSE                       # MIT 许可证
 ├── prompts/
 │   └── automation-prompt.md      # 自动化定时任务的 prompt 模板
 ├── templates/
-│   └── weekly-report-template.html  # 周报 HTML 模板（占位符版）
+│   ├── index.html                   # 模板画廊目录页（三种出版形态对比入口）
+│   ├── editorial-ledger.html        # 《工作周讯》报纸版（编辑感）
+│   ├── orbit-instrument.html        # 《七日仪》天文仪器版（数据诗意）
+│   ├── stage-programme.html         # 《本周上演》剧场节目单版（叙事游戏化）
+│   └── weekly-report-template.html  # 经典蓝色版（占位符版）
 └── examples/
     └── weekly-report-sample.html # 脱敏示例周报
 ```
@@ -85,6 +102,7 @@ weekly-work-report/
 - **改配色**：修改模板中 CSS 变量 `--primary` / `--gradient-start` 等
 - **改周报结构**：增删模板中的卡片区块（统计/热力图/图表等）
 - **改触发场景**：修改 SKILL.md frontmatter 中的 `description` 触发词
+- **三套新模板**：替换文件内 `REPORT_DATA` 数据罐头即可换数据；类型配色在 `TYPE_COLORS` 映射表中调整；`?empty=1` 预览空周
 
 ## 📜 License
 

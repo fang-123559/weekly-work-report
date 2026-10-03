@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>周报的三种出版形态 · 版本目录</title>
+<!--
+  版本目录 ｜ weekly-work-report 模板导航页
+  一份周报数据（REPORT_DATA 罐头），三种出版形态。
+-->
+<style>
+  :root{
+    --paper:#f6f2e8; --ink:#211c15; --ink-soft:#4f483c; --muted:#7a7263;
+    --red:#b5342a; --hair:rgba(33,28,21,.3); --hair-soft:rgba(33,28,21,.15);
+    --serif:"Songti SC","STSong","Noto Serif SC","Source Han Serif SC","SimSun",Georgia,"Times New Roman",serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:var(--paper);color:var(--ink);font-family:var(--serif);
+    line-height:1.8;-webkit-font-smoothing:antialiased;
+  }
+  .toc{max-width:880px;margin:0 auto;padding:0 26px}
+  header{padding:64px 0 26px;text-align:center}
+  .over{font-size:11px;letter-spacing:.5em;text-indent:.5em;color:var(--muted);text-transform:uppercase;margin-bottom:14px}
+  h1{font-size:clamp(30px,5.4vw,46px);font-weight:900;letter-spacing:.1em;line-height:1.4}
+  h1 .red{color:var(--red)}
+  .lede{max-width:600px;margin:22px auto 0;font-size:14.5px;color:var(--ink-soft);text-align:justify}
+  .rule{border-top:1px solid var(--ink);border-bottom:1px solid var(--ink);height:5px;margin:34px 0 0}
+
+  .entries{list-style:none}
+  .entry{
+    display:grid;grid-template-columns:92px 1fr auto;gap:26px;align-items:baseline;
+    padding:34px 6px;border-bottom:1px solid var(--hair);text-decoration:none;color:inherit;
+    transition:background .3s;position:relative;
+  }
+  .entry:hover{background:rgba(33,28,21,.035)}
+  .entry .no{font-size:34px;font-weight:900;color:var(--hair);transition:color .3s;line-height:1}
+  .entry:hover .no{color:var(--red)}
+  .entry .name{font-size:22px;font-weight:900;letter-spacing:.12em;margin-bottom:4px}
+  .entry .name .en{font-size:10.5px;letter-spacing:.3em;color:var(--muted);margin-left:12px;font-weight:400;text-transform:uppercase}
+  .entry .desc{font-size:13.5px;color:var(--ink-soft);max-width:520px}
+  .entry .keys{font-size:11px;color:var(--muted);letter-spacing:.14em;margin-top:8px}
+  .entry .keys b{color:var(--red);font-weight:700}
+  .entry .go{
+    font-size:12px;letter-spacing:.3em;color:var(--muted);white-space:nowrap;
+    border:1px solid var(--hair);padding:8px 18px;transition:all .3s;align-self:center;
+  }
+  .entry:hover .go{border-color:var(--red);color:var(--red)}
+  @media (max-width:640px){
+    .entry{grid-template-columns:56px 1fr;gap:16px}
+    .entry .go{display:none}
+    .entry .no{font-size:24px}
+    .entry .name{font-size:18px}
+  }
+
+  footer{
+    padding:30px 0 60px;font-size:11.5px;color:var(--muted);letter-spacing:.12em;
+    display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  }
+  footer a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid var(--hair)}
+  footer a:hover{color:var(--red);border-bottom-color:var(--red)}
+</style>
+</head>
+<body>
+<div class="toc">
+  <header>
+    <div class="over">Weekly Work Report · Template Gallery</div>
+    <h1>周报的<span class="red">三种</span>出版形态</h1>
+    <p class="lede">周报不必是仪表盘。同一份工作数据，在这里被当作三种读物出版：一期报纸、一台仪器、一场演出。三个版本共用同一份数据罐头（REPORT_DATA），随时互换；每个文件双击即可独立运行。</p>
+    <div class="rule"></div>
+  </header>
+
+  <ul class="entries">
+    <li><a class="entry" href="editorial-ledger.html">
+      <span class="no">壹</span>
+      <span>
+        <span class="name">工作周讯<span class="en">The Weekly Ledger</span></span>
+        <span class="desc">把一周印成周一早晨的报纸头版——成果是头条，日程是一周要闻，统计是数字版，计划是社论。支持打印。</span>
+        <span class="keys"><b>编辑排版</b> · 油墨显影 · 多栏报版 · 首字下沉</span>
+      </span>
+      <span class="go">翻阅 →</span>
+    </a></li>
+    <li><a class="entry" href="orbit-instrument.html">
+      <span class="no">贰</span>
+      <span>
+        <span class="name">七日仪<span class="en">Seven-Day Orbital</span></span>
+        <span class="desc">把一周铸成一台天文仪器——七天是一个闭环，弧长即工作量，虚线即缺席；五周趋势化为年轮。可巡天、可键盘观测。</span>
+        <span class="keys"><b>数据诗意</b> · 极坐标圆环 · 巡天动画 · 正字计数</span>
+      </span>
+      <span class="go">观测 →</span>
+    </a></li>
+    <li><a class="entry" href="stage-programme.html">
+      <span class="no">叁</span>
+      <span>
+        <span class="name">本周上演<span class="en">This Week on Stage</span></span>
+        <span class="desc">把一周排成剧场节目单——每日一幕，上午日场下午晚场，缺席盖停演章，亮点上谢幕幕，计划进下季预告。</span>
+        <span class="keys"><b>舞台隐喻</b> · 开演幕帘 · 竖排幕次 · 谢幕聚光</span>
+      </span>
+      <span class="go">观演 →</span>
+    </a></li>
+  </ul>
+
+  <footer>
+    <span>记录每一天 · 周报自动生成</span>
+    <span><a href="weekly-report-template.html">经典蓝色版</a> · <a href="https://github.com/fang-123559/weekly-work-report">GitHub 仓库</a></span>
+  </footer>
+</div>
+</body>
+</html>

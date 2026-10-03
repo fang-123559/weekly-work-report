@@ -93,9 +93,54 @@ agent_created: true
 
 ---
 
+## 模板登记表（第一步前先选版式）
+
+本技能提供 **四套可执行模板**（含原经典版），全部自包含、双击可开。执行时**先问用户偏好**；未指定则默认经典版，或按用户职业气质推荐：
+
+| 模板文件 | 名称 | 隐喻 | 适用偏好 | 关键交互 |
+|---|---|---|---|---|
+| `templates/weekly-report-template.html` | 经典蓝色版 | 仪表盘 | 默认 / 通用汇报 | CSS 图表 |
+| `templates/editorial-ledger.html` | 《工作周讯》 | 周一早晨的报纸 | 编辑感 / 喜欢纸媒排版 | 版面目录跳转、头条展开、油墨显影、可打印 |
+| `templates/orbit-instrument.html` | 《七日仪》 | 天文仪器 | 数据诗意 / 喜欢图形化 | 扇区点击锁定、←/→ 切日、"巡天"自动巡访、年轮趋势 |
+| `templates/stage-programme.html` | 《本周上演》 | 剧场节目单 | 游戏化 / 喜欢叙事 | 开演幕帘、幕次跳转、连演模式、停演盖章 |
+
+**空周预览**：任一模板地址后加 `?empty=1` 可预览"本周无记录"空态。
+
+### 数据注入约定（三套新模板共用）
+
+三个新模板内置同一个 **REPORT_DATA 数据罐头**（`<script>` 内，注释标明 ▼▼▼ DATA CARTRIDGE ▼▼▼ 区块），结构同构、可互换：
+
+```js
+REPORT_DATA = {
+  meta: { year, week, range, team, generatedAt, source },  // 刊号/演期/印制时间/日志来源
+  days: [ // 7 项，周一至周日；唯一必填来源，其余统计由模板自动推导
+    { date, weekday, status: "work|miss|weekend", summary, types[],
+      morning:[{type,text}], afternoon:[{type,text}] } ]
+  ,
+  highlights: [{ level:"gold|green|purple", title, detail }],   // 头条/要闻/谢幕素材
+  materials:  [{ type:"img|video|doc", name, meta, url? }],     // 图片电稿/附件/道具间
+  activities: [{ name, count }],                                // 正字计数
+  trend:      [{ week:"W33", value }],                          // 近五周（折线/年轮/上座）
+  plan:       [{ priority:1|2|3, title, note }]                 // 社论/下季预告
+}
+```
+
+注入规则：
+1. `days` 为唯一必填来源——记录完整度、类型分布、工作事项数均由 `days` 自动推导，**不要手填**；
+2. 无记录日期 `status:"miss"`，周末 `status:"weekend"`（三套模板各有"本日无稿 / 此日无观测 / 停演"仪式化呈现）；
+3. 替换罐头后不得改动 `<script>` 其余部分；
+4. 旧经典版模板继续使用 `{占位符}` 替换法，不受影响。
+
+---
+
 ## 模板说明
 
-`templates/weekly-report-template.html` 提供了完整的周报骨架，所有动态内容用 `{占位符}` 标注。执行时：
+`templates/weekly-report-template.html`（经典版）提供了完整的周报骨架，所有动态内容用 `{占位符}` 标注。执行时：
 1. 复制模板为输出文件
 2. 用真实数据替换所有占位符
 3. 按需增删时间线条目（一天一个 `tl-item`）
+
+`templates/editorial-ledger.html`、`templates/orbit-instrument.html`、`templates/stage-programme.html`（三套编辑感模板）执行时：
+1. 按模板登记表选定版式，复制为输出文件
+2. 用真实日志数据替换 REPORT_DATA 数据罐头（仅替换罐头，勿动脚本其余部分）
+3. 打开 `templates/index.html` 可预览对比三套版式

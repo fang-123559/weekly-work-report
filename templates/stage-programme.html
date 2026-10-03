@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026-W37 · 本周上演</title>
+<!--
+  《本周上演》 THIS WEEK ON STAGE ｜ 剧场节目单版
+  weekly-work-report 模板之三（编辑感 × 游戏化之间，舞台隐喻方向）
+  · 使用：双击即可在浏览器中浏览（内置 2026-W37 示例数据）。
+  · 生成新周报：只需替换下方 <script> 中的 REPORT_DATA 数据罐头（与 editorial-ledger.html、
+    orbit-instrument.html 同构，可互换；剧种占比与上座率由模板自动推导）。
+  · 预览"空周"状态：在地址后加 ?empty=1 ，封面将出现停演公告。
+  · 自包含：无外部字体、脚本、图片；可离线浏览。
+-->
+<style>
+  :root{
+    --bill:#f2ecdd;
+    --bill-deep:#e9e1cc;
+    --ink:#221a12;
+    --ink-soft:#4c4234;
+    --muted:#6f6353;
+    --red:#9e2b25;
+    --red-deep:#7e1f1d;
+    --gold:#9a7b2d;
+    --hair:rgba(34,26,18,.32);
+    --hair-soft:rgba(34,26,18,.15);
+    --serif:"Songti SC","STSong","Noto Serif SC","Source Han Serif SC","SimSun",Georgia,"Times New Roman",serif;
+    --kai:"Kaiti SC","STKaiti","KaiTi","楷体",var(--serif);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto}
+    *{transition:none!important;animation:none!important}
+  }
+  body{background:var(--bill);color:var(--ink);font-family:var(--serif);line-height:1.78;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+
+  /* ============ 开演幕帘 ============ */
+  .curtain{position:fixed;inset:0;z-index:90;pointer-events:none}
+  .curtain .c-band{
+    position:absolute;left:0;right:0;height:50.5vh;
+    background:
+      repeating-linear-gradient(90deg, rgba(0,0,0,.16) 0 3px, transparent 3px 46px, rgba(255,255,255,.05) 46px 49px, transparent 49px 92px),
+      var(--red-deep);
+    transition:transform 1.4s cubic-bezier(.65,.02,.3,1);
+  }
+  .curtain .c-band.top{top:0;box-shadow:0 6px 24px rgba(0,0,0,.35)}
+  .curtain .c-band.bottom{bottom:0;box-shadow:0 -6px 24px rgba(0,0,0,.35)}
+  .curtain .c-title{
+    position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    color:#e8d9b8;font-family:var(--kai);font-size:30px;letter-spacing:.7em;text-indent:.7em;
+    transition:opacity .6s;white-space:nowrap;z-index:1;
+  }
+  .curtain.risen .c-band.top{transform:translateY(-102%)}
+  .curtain.risen .c-band.bottom{transform:translateY(102%)}
+  .curtain.risen .c-title{opacity:0}
+  .curtain.gone{display:none}
+
+  /* ============ 场刊整体 ============ */
+  .program{max-width:1080px;margin:22px auto 0;border:1px solid var(--ink);position:relative}
+  @media (max-width:640px){ .program{margin:10px 10px 0} }
+  .program::before{content:"";position:absolute;inset:5px;border:1px solid var(--hair-soft);pointer-events:none;z-index:6}
+
+  /* ============ 吸顶幕次条 ============ */
+  .act-bar{
+    position:sticky;top:0;z-index:40;background:var(--bill);
+    display:flex;align-items:center;gap:16px;padding:10px 22px;
+    border-bottom:1px solid var(--ink);
+    transform:translateY(calc(-100% - 40px));transition:transform .45s ease;
+  }
+  .act-bar.show{transform:none}
+  .act-bar .ab-title{font-size:13px;font-weight:900;letter-spacing:.24em;white-space:nowrap}
+  .act-bar .ab-title b{color:var(--red)}
+  .act-bar .ab-dots{display:flex;gap:4px;flex:1;justify-content:flex-end;overflow-x:auto;scrollbar-width:none}
+  .act-bar .ab-dots::-webkit-scrollbar{display:none}
+  .act-bar .dot{
+    appearance:none;background:none;border:none;cursor:pointer;font-family:var(--serif);
+    font-size:13px;color:var(--muted);padding:2px 8px;border-bottom:2px solid transparent;
+    transition:color .25s,border-color .25s;white-space:nowrap;
+  }
+  .act-bar .dot.stop{color:var(--red);opacity:.65}
+  .act-bar .dot:hover{color:var(--ink)}
+  .act-bar .dot.active{color:var(--gold);border-bottom-color:var(--gold);font-weight:700}
+  .act-bar .ab-tour{
+    appearance:none;background:none;border:1px solid var(--ink);cursor:pointer;
+    font-family:var(--serif);font-size:12px;letter-spacing:.2em;color:var(--ink);
+    padding:5px 14px;white-space:nowrap;transition:all .25s;
+  }
+  .act-bar .ab-tour:hover{background:var(--ink);color:var(--bill)}
+  .act-bar .ab-tour.on{background:var(--red);border-color:var(--red);color:var(--bill)}
+  @media (max-width:560px){ .act-bar{padding:8px 12px} .act-bar .ab-title{font-size:11px} }
+
+  /* ============ 封面 ============ */
+  .cover{min-height:92vh;display:grid;place-items:center;padding:56px 24px;position:relative}
+  .cover-inner{text-align:center;max-width:640px;width:100%}
+  .presented{font-family:var(--kai);font-size:14px;letter-spacing:.5em;text-indent:.5em;color:var(--muted);margin-bottom:34px}
+  .cover-stage{display:flex;justify-content:center;gap:26px;align-items:stretch;margin-bottom:30px}
+  .cover-title{
+    writing-mode:vertical-rl;font-size:clamp(46px,9vw,84px);font-weight:900;
+    letter-spacing:.18em;line-height:1.15;
+  }
+  .cover-side{
+    writing-mode:vertical-rl;font-size:13px;letter-spacing:.42em;color:var(--gold);
+    border-right:1px solid var(--hair);padding-right:14px;
+  }
+  .cover-dates{font-size:13.5px;letter-spacing:.24em;color:var(--ink-soft);margin-bottom:6px}
+  .cover-theatre{font-size:11.5px;letter-spacing:.3em;color:var(--muted);margin-bottom:30px}
+  .bill-list{max-width:420px;margin:0 auto 36px;text-align:left}
+  .bill-row{
+    display:flex;align-items:baseline;gap:14px;padding:8px 4px;border-bottom:1px solid var(--hair-soft);
+    font-size:14px;
+  }
+  .bill-row .br-act{font-weight:900;letter-spacing:.14em;width:64px;flex:none}
+  .bill-row .br-day{flex:1;color:var(--ink-soft);letter-spacing:.1em}
+  .bill-row .br-st{flex:none;font-size:12px;letter-spacing:.3em;text-indent:.3em}
+  .bill-row .br-st.on{color:var(--ink)}
+  .bill-row .br-st.off{color:var(--red)}
+  .bill-row .br-st.rest{color:var(--muted)}
+  .empty-notice{
+    display:none;max-width:420px;margin:0 auto 34px;border:3px double var(--red);color:var(--red);
+    padding:14px 18px;font-size:14px;letter-spacing:.14em;line-height:1.9;transform:rotate(-1.5deg);
+  }
+  body.is-empty .empty-notice{display:block}
+  .open-seal{
+    appearance:none;background:none;cursor:pointer;
+    width:104px;height:104px;border-radius:50%;
+    border:2px solid var(--red);box-shadow:inset 0 0 0 4px var(--bill), inset 0 0 0 5px var(--red);
+    color:var(--red);font-family:var(--kai);font-size:26px;font-weight:700;letter-spacing:.3em;text-indent:.3em;
+    transition:all .35s;
+  }
+  .open-seal:hover{background:var(--red);color:var(--bill);transform:rotate(-8deg) scale(1.04)}
+  .skip-link{
+    display:block;margin-top:22px;background:none;border:none;cursor:pointer;
+    font-family:var(--serif);font-size:12px;letter-spacing:.28em;color:var(--muted);
+    border-bottom:1px solid transparent;padding-bottom:2px;
+  }
+  .skip-link:hover{color:var(--ink);border-bottom-color:var(--hair)}
+
+  /* ============ 幕 ============ */
+  main.sections{padding:8px 42px 20px}
+  @media (max-width:640px){ main.sections{padding:8px 20px 10px} }
+  .act{display:grid;grid-template-columns:112px 1fr;gap:30px;padding:52px 0;position:relative}
+  @media (max-width:640px){ .act{grid-template-columns:72px 1fr;gap:18px;padding:38px 0} }
+  .act + .act-divider{border-top:1px solid var(--hair)}
+  .act-divider{display:flex;align-items:center;gap:16px;padding:6px 0}
+  .act-divider::before,.act-divider::after{content:"";flex:1;border-top:1px solid var(--hair-soft)}
+  .act-divider span{font-family:var(--kai);font-size:11px;letter-spacing:.5em;text-indent:.5em;color:var(--muted);white-space:nowrap}
+
+  .act-spine{display:flex;gap:12px;justify-content:flex-end}
+  .spine-act{
+    writing-mode:vertical-rl;font-size:19px;font-weight:900;letter-spacing:.34em;line-height:1;
+  }
+  .spine-act .num{color:var(--gold);font-size:26px}
+  .spine-meta{writing-mode:vertical-rl;font-size:12px;color:var(--muted);letter-spacing:.24em;line-height:1;padding-top:4px}
+  @media (max-width:640px){
+    .spine-act{font-size:15px} .spine-act .num{font-size:20px}
+    .spine-meta{font-size:10.5px}
+  }
+
+  .act-quote{
+    font-family:var(--kai);font-size:16.5px;color:var(--ink-soft);margin-bottom:20px;
+  }
+  .act-quote::before{content:"「";color:var(--gold)}
+  .act-quote::after{content:"」";color:var(--gold)}
+  .show-grid{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+  @media (max-width:640px){ .show-grid{grid-template-columns:1fr;gap:16px} }
+  .show-col .sc-head{
+    display:flex;align-items:baseline;gap:10px;margin-bottom:10px;
+    font-size:12.5px;font-weight:900;letter-spacing:.3em;color:var(--ink);
+  }
+  .show-col .sc-head .en{font-size:9.5px;color:var(--muted);letter-spacing:.22em;font-weight:400}
+  .show-col .sc-head::after{content:"";flex:1;border-top:1px solid var(--hair)}
+  .show-item{display:flex;gap:10px;padding:7px 0;font-size:14px;line-height:1.7}
+  .type-tag{
+    flex:none;align-self:flex-start;margin-top:.3em;
+    font-size:10.5px;letter-spacing:.12em;color:var(--red);
+    border:1px solid var(--red);padding:1px 7px;border-radius:2px;white-space:nowrap;
+  }
+  .show-empty{font-family:var(--kai);font-size:13px;color:var(--muted);letter-spacing:.2em;padding:8px 0}
+
+  .act-off{text-align:center;padding:26px 0 10px}
+  .stamp{
+    display:inline-block;font-family:var(--kai);font-size:30px;font-weight:700;
+    color:var(--red);border:3px double var(--red);padding:10px 22px;
+    letter-spacing:.5em;text-indent:.5em;transform:rotate(-8deg) scale(1.8);opacity:0;
+    transition:transform .5s cubic-bezier(.2,1.6,.35,1),opacity .4s;
+  }
+  .stamp.gray{color:var(--muted);border-color:var(--muted);font-size:24px}
+  .stamp.stamped{transform:rotate(-8deg) scale(1);opacity:.92}
+  .act-off .off-line{margin-top:20px;font-size:13px;color:var(--muted);letter-spacing:.28em}
+
+  /* ============ 谢幕 ============ */
+  .grand{padding:54px 0 30px;border-top:3px double var(--ink)}
+  .grand-head{text-align:center;margin-bottom:8px}
+  .grand-head .g-cn{font-size:24px;font-weight:900;letter-spacing:.6em;text-indent:.6em}
+  .grand-head .g-en{font-family:var(--sans);font-size:10px;letter-spacing:.4em;color:var(--gold);margin-top:4px}
+  .call-list{list-style:none;max-width:680px;margin:22px auto 0}
+  .call-item{
+    position:relative;padding:18px 22px;margin:0 -10px;border-radius:4px;
+  }
+  .call-item .spot{
+    position:absolute;inset:0;border-radius:4px;opacity:0;transition:opacity .35s;pointer-events:none;
+    background:radial-gradient(150px 90px at var(--mx,50%) var(--my,50%), rgba(154,123,45,.16), transparent 72%);
+  }
+  .call-item:hover .spot{opacity:1}
+  .call-item .ci-row{display:flex;gap:12px;align-items:baseline}
+  .call-item .star{color:var(--gold);font-size:12px;flex:none}
+  .call-item .ci-t{font-size:16.5px;font-weight:900;line-height:1.6}
+  .call-item .ci-d{font-size:13.5px;color:var(--ink-soft);margin-top:6px;padding-left:24px;line-height:1.8}
+  .call-item + .call-item{border-top:1px dashed var(--hair-soft)}
+
+  /* ============ 演出速报（印刷物化的统计） ============ */
+  .bulletin{
+    border:1px solid var(--ink);position:relative;padding:30px 34px 34px;
+    display:grid;grid-template-columns:1.1fr 1fr;gap:0 40px;
+    margin:44px 0 50px;
+  }
+  .bulletin::before{content:"";position:absolute;inset:4px;border:1px solid var(--hair-soft);pointer-events:none}
+  .bb-head{grid-column:1/-1;text-align:center;margin-bottom:20px;padding-bottom:13px;border-bottom:1px solid var(--hair)}
+  .bb-head .bb-cn{font-size:19px;font-weight:900;letter-spacing:.5em;text-indent:.5em}
+  .bb-head .bb-en{font-family:var(--sans);font-size:9.5px;letter-spacing:.34em;color:var(--gold);margin-top:5px}
+  .bb-col{min-width:0}
+  .bb-col + .bb-col{border-left:1px solid var(--hair);padding-left:40px}
+  .bb-h{font-size:14px;font-weight:900;letter-spacing:.32em;margin-bottom:3px}
+  .bb-en{font-family:var(--sans);font-size:9.5px;letter-spacing:.24em;color:var(--muted);margin-bottom:14px}
+  .sb-h{font-size:15px;font-weight:900;letter-spacing:.3em;margin-bottom:4px}
+  .sb-en{font-family:var(--sans);font-size:10px;letter-spacing:.26em;color:var(--muted);margin-bottom:20px}
+  /* 剧目表惯例：点线引导 */
+  .credit{display:flex;align-items:baseline;gap:12px;padding:8px 0;font-size:14px}
+  .credit .c-name{letter-spacing:.16em;flex:none}
+  .credit .c-leader{flex:1;border-bottom:2px dotted var(--hair);transform:translateY(-4px);min-width:24px}
+  .credit .c-val{flex:none;font-variant-numeric:tabular-nums;color:var(--ink-soft);letter-spacing:.06em}
+  .credit.top .c-name,.credit.top .c-val{color:var(--gold);font-weight:700}
+  .bb-empty{font-family:var(--kai);font-size:13px;color:var(--muted);letter-spacing:.24em;padding:8px 0}
+  .house-chart{display:flex;align-items:flex-end;gap:18px;height:128px;padding:0 2px;border-bottom:1px solid var(--ink)}
+  .house-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:0}
+  .house-bar{width:100%;max-width:30px;background:var(--ink);opacity:.5;height:0;transition:height 1s cubic-bezier(.25,.7,.2,1)}
+  .house-col.cur .house-bar{background:var(--red);opacity:1}
+  .house-val{font-family:var(--sans);font-size:11px;color:var(--muted);margin-bottom:6px;font-variant-numeric:tabular-nums}
+  .house-col.cur .house-val{color:var(--red);font-weight:700}
+  .house-weeks{display:flex;gap:18px;padding:7px 2px 0}
+  .house-weeks span{flex:1;text-align:center;font-family:var(--sans);font-size:10.5px;color:var(--muted);letter-spacing:.08em}
+  .house-weeks span.cur{color:var(--red);font-weight:700}
+  @media (max-width:820px){
+    .bulletin{grid-template-columns:1fr;padding:24px 20px 28px;gap:0}
+    .bb-col + .bb-col{border-left:none;padding-left:0;border-top:1px solid var(--hair);margin-top:22px;padding-top:22px}
+  }
+
+  /* ============ 道具间 ============ */
+  .props{padding:40px 0 46px;border-top:1px solid var(--hair)}
+  .prop-tags{display:flex;flex-wrap:wrap;gap:14px}
+  .prop-tag{
+    display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;
+    border:1px solid var(--ink);padding:9px 16px 9px 12px;background:var(--bill);
+    clip-path:polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
+    position:relative;transition:all .25s;max-width:100%;  }
+  .prop-tag::before{
+    content:"";width:7px;height:7px;border-radius:50%;border:1.5px solid var(--muted);flex:none;
+  }
+  .prop-glyph{font-size:11px;color:var(--red);border:1px solid var(--red);padding:0 5px;flex:none;font-family:var(--sans)}
+  .prop-name{font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .prop-meta{font-family:var(--sans);font-size:10.5px;color:var(--muted);white-space:nowrap}
+  .prop-tag:hover{border-color:var(--gold);background:#f6f0e0}
+  .props-empty{font-family:var(--kai);font-size:13px;color:var(--muted);letter-spacing:.24em}
+
+  /* ============ 下季预告 ============ */
+  .next-season{padding:40px 0 46px;border-top:3px double var(--ink)}
+  .ns-list{list-style:none;max-width:720px;margin-top:18px}
+  .ns-item{display:flex;gap:16px;align-items:baseline;padding:16px 4px;border-bottom:1px solid var(--hair-soft)}
+  .ns-seal{
+    flex:none;font-size:11px;letter-spacing:.3em;text-indent:.3em;padding:3px 9px;
+    font-family:var(--sans);
+  }
+  .ns-seal.p1{background:var(--red);color:var(--bill)}
+  .ns-seal.p2{border:1px solid var(--gold);color:var(--gold)}
+  .ns-seal.p3{border:1px dashed var(--muted);color:var(--muted)}
+  .ns-body h4{font-size:15.5px;font-weight:900;line-height:1.6}
+  .ns-body p{font-size:13px;color:var(--muted);margin-top:2px}
+
+  /* ============ 场刊尾 ============ */
+  .colophon{
+    padding:22px 42px 34px;border-top:1px solid var(--ink);
+    display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;
+    font-family:var(--sans);font-size:11px;color:var(--muted);letter-spacing:.14em;
+  }
+  @media (max-width:640px){ .colophon{padding:18px 20px 28px} }
+  .colophon a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid var(--hair)}
+  .colophon a:hover{color:var(--red);border-bottom-color:var(--red)}
+
+  .reveal{opacity:0;transform:translateY(14px);transition:opacity .9s ease,transform .9s ease}
+  .reveal.on{opacity:1;transform:none}
+</style>
+</head>
+<body>
+
+<div class="curtain" id="curtain" aria-hidden="true">
+  <div class="c-band top"></div>
+  <div class="c-band bottom"></div>
+  <div class="c-title">工作剧场</div>
+</div>
+
+<div class="program">
+
+  <nav class="act-bar" id="actBar" aria-label="幕次导航">
+    <span class="ab-title">节目单 · <b id="abWeek">第 37 周</b></span>
+    <div class="ab-dots" id="abDots"></div>
+    <button class="ab-tour" id="tourBtn" type="button">连演 ▸</button>
+  </nav>
+
+  <header class="cover" id="cover">
+    <div class="cover-inner">
+      <p class="presented">WorkBuddy 剧院 呈献</p>
+      <div class="cover-stage">
+        <span class="cover-side" id="coverSide">工作剧场 · 周演出季</span>
+        <h1 class="cover-title" id="coverTitle">第三十七周</h1>
+      </div>
+      <p class="cover-dates" id="coverDates">演期 09/07 – 09/13</p>
+      <p class="cover-theatre" id="coverTheatre">工作剧场 · 主厅</p>
+      <div class="empty-notice">本季停演公告：未检索到上周日志，本周全场停演。<br>恢复每日记录后，演出照常上演。</div>
+      <div class="bill-list" id="billList" aria-label="幕次总表"></div>
+      <button class="open-seal" id="openBtn" type="button">开演</button>
+      <button class="skip-link" id="skipBtn" type="button">或直接翻阅节目单 ↓</button>
+    </div>
+  </header>
+
+  <main class="sections" id="sections"></main>
+
+  <footer class="colophon">
+    <span id="cpGen">工作剧场 · 场刊由 WorkBuddy 印制</span>
+    <span>日志来源 <span id="cpSrc">—</span></span>
+    <span><a href="editorial-ledger.html">报纸版</a> · <a href="orbit-instrument.html">仪器版</a> · <a href="index.html">版本目录</a></span>
+  </footer>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   ▼▼▼ 数据罐头 DATA CARTRIDGE ▼▼▼
+   生成新周报：替换此对象即可。days 为唯一必填来源，
+   剧种占比 / 上座率 / 幕次总表均由模板自动推导。
+   与 editorial-ledger.html、orbit-instrument.html 的罐头同构，可互换。
+═══════════════════════════════════════════════════════════════ */
+const REPORT_DATA = {
+  meta: { year: 2026, week: 37, range: "09/07 – 09/13", team: "产品研发组",
+          generatedAt: "2026-09-14 08:00", source: ".workbuddy/memory/" },
+  days: [
+    { date:"09/07", weekday:"周一", status:"work", summary:"完成周报模块数据层重构", types:["开发","会议","文档"],
+      morning:[ {type:"会议",text:"参加 Q4 规划对齐会，认领周报可视化需求"},
+                {type:"开发",text:"搭建报表数据聚合层，打通日志读取管线"} ],
+      afternoon:[ {type:"开发",text:"完成周报模板渲染引擎初版，支持三类图表"},
+                  {type:"文档",text:"整理数据接口约定，输出接入文档 v0.1"} ] },
+    { date:"09/08", weekday:"周二", status:"work", summary:"联调周历热力图与统计口径", types:["开发","测试","会议"],
+      morning:[ {type:"开发",text:"实现周历热力图组件，支持已记录 / 缺失 / 周末三态"},
+                {type:"测试",text:"对日志解析边界情况补充 12 个用例"} ],
+      afternoon:[ {type:"会议",text:"与数据组对齐统计口径，确定缺勤判定规则"},
+                  {type:"开发",text:"修复空日志目录时的崩溃，补充警告日志"} ] },
+    { date:"09/09", weekday:"周三", status:"work", summary:"发布内部试用版，收集首轮反馈", types:["测试","文档","会议","开发"],
+      morning:[ {type:"测试",text:"完成三台设备兼容性回归，修复两处样式塌陷"},
+                {type:"文档",text:"撰写试用指引与常见问题说明"} ],
+      afternoon:[ {type:"会议",text:"组织内部试用宣讲，收集 9 条反馈"},
+                  {type:"开发",text:"按反馈调整趋势图坐标轴与配色"} ] },
+    { date:"09/10", weekday:"周四", status:"miss", summary:"", types:[], morning:[], afternoon:[] },
+    { date:"09/11", weekday:"周五", status:"work", summary:"周报模块通过评审，进入下阶段", types:["会议","开发","学习","文档"],
+      morning:[ {type:"会议",text:"周报模块技术评审通过，确认开放三套模板方向"},
+                {type:"开发",text:"沉淀模板参数化方案，支持自定义配色"} ],
+      afternoon:[ {type:"学习",text:"研究 CSS 竖排与分栏排版在报表中的应用"},
+                  {type:"文档",text:"更新路线图，标注下周里程碑"} ] },
+    { date:"09/12", weekday:"周六", status:"weekend", summary:"", types:[], morning:[], afternoon:[] },
+    { date:"09/13", weekday:"周日", status:"weekend", summary:"", types:[], morning:[], afternoon:[] }
+  ],
+  highlights: [
+    { level:"gold",   title:"周报模块通过技术评审，确定开放三套模板方向",
+      detail:"评审会确认了参数化配色与模板选择方案，模块进入推广准备阶段，预计下周发布到技能市场，供更多团队开箱使用。" },
+    { level:"green",  title:"日志读取管线打通，端到端三秒生成周报",
+      detail:"从读取 .workbuddy/memory 下的每日日志，到渲染出完整 HTML 周报，全链路首次跑通，平均生成耗时控制在三秒以内。" },
+    { level:"purple", title:"内部试用收集九条反馈，全部纳入排期",
+      detail:"首轮试用覆盖三个团队，反馈集中在移动端阅读与打印两个场景，已逐条建立跟进项，并入下周迭代计划。" }
+  ],
+  materials: [
+    { type:"img",   name:"周报模块架构草图",   meta:"09/07 · 白板照片" },
+    { type:"doc",   name:"数据接口约定 v0.1", meta:"09/07 · 接入文档" },
+    { type:"img",   name:"热力图三状态截图",   meta:"09/08 · 界面截图" },
+    { type:"video", name:"内部试用宣讲录像",   meta:"09/09 · 12 分钟" },
+    { type:"doc",   name:"试用反馈汇总表",     meta:"09/09 · 9 条记录" },
+    { type:"doc",   name:"评审结论与路线图",   meta:"09/11 · 会议纪要" }
+  ],
+  activities: [
+    { name:"代码提交", count:12 }, { name:"会议沟通", count:6 }, { name:"缺陷修复", count:5 },
+    { name:"文档产出", count:4 },  { name:"用例执行", count:26 }
+  ],
+  trend: [ {week:"W33",value:3},{week:"W34",value:4},{week:"W35",value:2},{week:"W36",value:5},{week:"W37",value:4} ],
+  plan: [
+    { priority:1, title:"发布三套模板皮肤至技能市场", note:"完成文档与示例，开放社区试用" },
+    { priority:2, title:"补齐移动端阅读与打印样式",   note:"针对首轮反馈的两处样式塌陷重点验证" },
+    { priority:3, title:"启动自动化推送灰度",         note:"先覆盖两个团队，验证周一推送链路" }
+  ]
+};
+/* ═══════════════════════ ▲▲▲ 数据罐头结束 ▲▲▲ ═══════════════════════ */
+
+(function(){
+  "use strict";
+  const D = REPORT_DATA;
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ?empty=1 演示：模拟"全周无记录"的真实空数据 */
+  if (new URLSearchParams(location.search).has("empty")) {
+    D.days = D.days.map((d,i)=>({ date:d.date, weekday:d.weekday, status:i>=5?"weekend":"miss",
+      summary:"", types:[], morning:[], afternoon:[] }));
+    D.highlights = []; D.materials = []; D.activities = []; D.trend = []; D.plan = [];
+  }
+  function h(tag, attrs, ...children){
+    const n = document.createElement(tag);
+    if (attrs) for (const k in attrs){
+      const v = attrs[k];
+      if (v == null) continue;
+      if (k === "class") n.className = v;
+      else if (k === "text") n.textContent = v;
+      else if (k === "html") n.innerHTML = v;
+      else if (k.startsWith("on")) n.addEventListener(k.slice(2), v);
+      else n.setAttribute(k, v);
+    }
+    for (const c of children){ if (c == null) continue; n.append(c.nodeType ? c : document.createTextNode(c)); }
+    return n;
+  }
+
+  /* ---- 推导 ---- */
+  const recorded = D.days.filter(d=>d.status==="work");
+  const workdays = D.days.filter(d=>d.status!=="weekend");
+  const entries = [];
+  D.days.forEach(d=>{ (d.morning||[]).forEach(e=>entries.push(e)); (d.afternoon||[]).forEach(e=>entries.push(e)); });
+  const typeMap={};
+  entries.forEach(e=>{ typeMap[e.type]=(typeMap[e.type]||0)+1; });
+  const genreDist=Object.keys(typeMap).map(k=>({name:k,count:typeMap[k]})).sort((a,b)=>b.count-a.count);
+  const rate = workdays.length ? Math.round(recorded.length/workdays.length*100) : 0;
+  const isEmpty = new URLSearchParams(location.search).has("empty") || (recorded.length===0 && entries.length===0);
+  if (isEmpty) document.body.classList.add("is-empty");
+
+  const CN_NUM=["零","一","二","三","四","五","六","七","八","九"];
+  function weekCn(n){
+    if(n<10) return CN_NUM[n];
+    if(n<20) return "十"+(n%10?CN_NUM[n%10]:"");
+    return CN_NUM[Math.floor(n/10)]+"十"+(n%10?CN_NUM[n%10]:"");
+  }
+  const ACT_NUM=["壹","贰","叁","肆","伍","陆","柒","捌","玖"];
+
+  /* ---- 封面 ---- */
+  document.getElementById("coverTitle").textContent = `第${weekCn(D.meta.week)}周`;
+  document.getElementById("coverSide").textContent = `${D.meta.team||"工作剧场"} · 周演出季`;
+  document.getElementById("coverDates").textContent = `演期 ${D.meta.range}`;
+  document.getElementById("coverTheatre").textContent = `工作剧场 · 主厅 · 记录完整度 ${rate}%`;
+  document.getElementById("abWeek").textContent = `第 ${D.meta.week} 周`;
+  document.getElementById("cpGen").textContent = `工作剧场 · 第 ${D.meta.week} 周场刊 · WorkBuddy 于 ${D.meta.generatedAt||"本周一"} 印制`;
+  document.getElementById("cpSrc").textContent = D.meta.source || "";
+  document.title = `${D.meta.year}-W${D.meta.week} · 本周上演`;
+
+  /* 幕次总表 */
+  const billList=document.getElementById("billList");
+  D.days.forEach((d,i)=>{
+    const st=d.status==="work"?["演出","on"]:d.status==="miss"?["停演","off"]:["休演","rest"];
+    billList.append(h("div",{class:"bill-row"},
+      h("span",{class:"br-act",text:`第${ACT_NUM[i]||i+1}幕`}),
+      h("span",{class:"br-day",text:`${d.weekday} · ${d.date}`}),
+      h("span",{class:"br-st "+st[1],text:st[0]})));
+  });
+
+  /* ---- 幕 ---- */
+  const sections=document.getElementById("sections");
+  const acts=[];
+  D.days.forEach((d,i)=>{
+    const act=h("section",{class:"act reveal",id:"act-"+i});
+    const isWork=d.status==="work";
+    act.append(h("div",{class:"act-spine"},
+      h("span",{class:"spine-act",html:`第<wbr><span class="num">${ACT_NUM[i]||i+1}</span><wbr>幕`}),
+      h("span",{class:"spine-meta",text:`${d.weekday} ${d.date}`})
+    ));
+    const body=h("div",{class:"act-body"});
+    if(isWork){
+      body.append(h("p",{class:"act-quote",text:d.summary||"本场演出照常举行"}));
+      const grid=h("div",{class:"show-grid"});
+      [["日场 · 上午","MATINEE",d.morning],["晚场 · 下午","EVENING",d.afternoon]].forEach(([cn,en,list])=>{
+        const col=h("div",{class:"show-col"});
+        col.append(h("div",{class:"sc-head"},h("span",{text:cn}),h("span",{class:"en",text:en})));
+        (list&&list.length?list:[null]).forEach(e=>{
+          if(!e){ col.append(h("div",{class:"show-empty",text:"本场无排片"})); return; }
+          col.append(h("div",{class:"show-item"},
+            h("span",{class:"type-tag",text:e.type}),
+            h("span",{text:e.text})));
+        });
+        grid.append(col);
+      });
+      body.append(grid);
+    } else if(d.status==="miss"){
+      const off=h("div",{class:"act-off"},
+        h("span",{class:"stamp","data-stamp":"1",text:"停演"}),
+        h("div",{class:"off-line",text:"本日停演 · 暂无记录"}));
+      body.append(off);
+    } else {
+      const off=h("div",{class:"act-off"},
+        h("span",{class:"stamp gray","data-stamp":"1",text:"休演"}),
+        h("div",{class:"off-line",text:"周末休演 · 剧院歇业"}));
+      body.append(off);
+    }
+    act.append(body);
+    sections.append(act);
+    acts.push(act);
+    if(i<D.days.length-1) sections.append(h("div",{class:"act-divider reveal"},h("span",{text:"幕间"})));
+  });
+
+  /* ---- 谢幕 ---- */
+  const grand=h("section",{class:"grand reveal",id:"grand"});
+  grand.append(h("div",{class:"grand-head"},
+    h("div",{class:"g-cn",text:"谢幕"}),
+    h("div",{class:"g-en",text:"CURTAIN CALL · 本周成果亮点"})));
+  const callList=h("ul",{class:"call-list"});
+  (D.highlights&&D.highlights.length?D.highlights:[{title:"本周无亮点记录",detail:""}]).forEach(x=>{
+    const item=h("li",{class:"call-item"},
+      h("span",{class:"spot","aria-hidden":"true"}),
+      h("div",{class:"ci-row"},h("span",{class:"star",text:"◆"}),h("div",{class:"ci-t",text:x.title})),
+      x.detail?h("div",{class:"ci-d",text:x.detail}):null);
+    item.addEventListener("mousemove",e=>{
+      const r=item.getBoundingClientRect();
+      item.style.setProperty("--mx",(e.clientX-r.left)+"px");
+      item.style.setProperty("--my",(e.clientY-r.top)+"px");
+    });
+    callList.append(item);
+  });
+  grand.append(callList);
+  sections.append(grand);
+
+  /* ---- 演出速报（印刷物化的统计） ---- */
+  const statBand=h("section",{class:"reveal"});
+  const bulletin=h("div",{class:"bulletin"});
+  bulletin.append(h("div",{class:"bb-head"},
+    h("div",{class:"bb-cn",text:"演出速报"}),
+    h("div",{class:"bb-en",text:"BOX OFFICE · 本季演出统计"})));
+  /* 剧种：点线引导的剧目表 */
+  const gBox=h("div",{class:"bb-col"});
+  gBox.append(h("div",{class:"bb-h",text:"各剧种场次"}), h("div",{class:"bb-en",text:"GENRES · 工作类型分布"}));
+  const maxG=Math.max(1,...genreDist.map(g=>g.count));
+  genreDist.forEach((g,i)=>{
+    gBox.append(h("div",{class:"credit"+(i===0?" top":"")},
+      h("span",{class:"c-name",text:g.name}),
+      h("span",{class:"c-leader"}),
+      h("span",{class:"c-val",text:`${g.count} 场 · ${Math.round(g.count/(entries.length||1)*100)}%`})));
+  });
+  if(!genreDist.length) gBox.append(h("div",{class:"bb-empty",text:"本季无演出记录"}));
+  /* 上座率：近五季 */
+  const hBox=h("div",{class:"bb-col"});
+  hBox.append(h("div",{class:"bb-h",text:"近五季上座"}),
+    h("div",{class:"bb-en",text:"HOUSE · 近五周记录天数"}));
+  const houseChart=h("div",{class:"house-chart"});
+  const houseWeeks=h("div",{class:"house-weeks"});
+  const houseBars=[];
+  const trend=D.trend||[];
+  const maxT=Math.max(1,...trend.map(t=>t.value));
+  trend.forEach((t,i)=>{
+    const cur=i===trend.length-1;
+    const bar=h("div",{class:"house-bar"});
+    bar.dataset.h=(t.value/maxT*100).toFixed(1)+"%";
+    houseBars.push(bar);
+    houseChart.append(h("div",{class:"house-col"+(cur?" cur":"")},
+      h("span",{class:"house-val",text:t.value}), bar));
+    houseWeeks.append(h("span",{class:cur?"cur":"",text:t.week}));
+  });
+  if(!trend.length) hBox.append(h("div",{class:"bb-empty",text:"无上座数据"}));
+  hBox.append(houseChart, houseWeeks);
+  bulletin.append(gBox,hBox);
+  statBand.append(bulletin);
+  sections.append(statBand);
+
+  /* ---- 道具间 ---- */
+  const props=h("section",{class:"props reveal"});
+  props.append(h("div",{class:"sb-h",text:"道具间"}), h("div",{class:"sb-en",text:"PROPS · 工作资料汇总"}));
+  const tags=h("div",{class:"prop-tags"});
+  const ATT_GLYPH={img:"图",video:"影",doc:"文"};
+  (D.materials||[]).forEach(m=>{
+    tags.append(h(m.url?"a":"span",{class:"prop-tag", ...(m.url?{href:m.url}:{})},
+      h("span",{class:"prop-glyph",text:ATT_GLYPH[m.type]||"件"}),
+      h("span",{class:"prop-name",text:m.name}),
+      h("span",{class:"prop-meta",text:m.meta||""})));
+  });
+  if(!(D.materials||[]).length) tags.append(h("span",{class:"props-empty",text:"本季无道具入库"}));
+  props.append(tags);
+  sections.append(props);
+
+  /* ---- 下季预告 ---- */
+  const ns=h("section",{class:"next-season reveal"});
+  ns.append(h("div",{class:"sb-h",text:"下季预告"}),
+    h("div",{class:"sb-en",text:"NEXT SEASON · 下周计划"}));
+  const nsList=h("ul",{class:"ns-list"});
+  const seals={1:["重点","p1"],2:["跟进","p2"],3:["留意","p3"]};
+  (D.plan||[]).forEach(p=>{
+    const [st,cls]=seals[p.priority]||seals[3];
+    nsList.append(h("li",{class:"ns-item"},
+      h("span",{class:"ns-seal "+cls,text:st}),
+      h("div",{class:"ns-body"}, h("h4",{text:p.title}), h("p",{text:p.note||""}))));
+  });
+  if(!(D.plan||[]).length) nsList.append(h("li",{class:"ns-item"},h("div",{class:"ns-body"},h("h4",{text:"下季剧目筹备中"}),h("p",{text:"记录工作后自动生成下周计划。"}))));
+  ns.append(nsList);
+  sections.append(ns);
+
+  /* ---- 幕帘 ---- */
+  const curtain=document.getElementById("curtain");
+  function riseCurtain(){
+    curtain.classList.add("risen");
+    setTimeout(()=>curtain.classList.add("gone"),1500);
+  }
+  if(reduced){ curtain.classList.add("gone"); }
+  else setTimeout(riseCurtain,650);
+
+  /* ---- 开演 / 直接翻阅 ---- */
+  const goFirst=()=>acts[0] && acts[0].scrollIntoView({behavior:reduced?"auto":"smooth",block:"start"});
+  document.getElementById("openBtn").addEventListener("click",()=>{ if(!reduced) riseCurtain(); goFirst(); });
+  document.getElementById("skipBtn").addEventListener("click",goFirst);
+
+  /* ---- 幕次条 ---- */
+  const actBar=document.getElementById("actBar");
+  const dots=D.days.map((d,i)=>{
+    const dot=h("button",{class:"dot"+(d.status==="miss"?" stop":""),type:"button",
+      "data-i":i,"aria-label":"跳转到"+d.weekday,text:ACT_NUM[i]||i+1});
+    dot.addEventListener("click",()=>{ stopTour(); acts[i].scrollIntoView({behavior:reduced?"auto":"smooth",block:"start"}); });
+    return dot;
+  });
+  const dotsBox=document.getElementById("abDots");
+  dots.forEach(x=>dotsBox.append(x));
+  const coverIO=new IntersectionObserver(es=>{
+    es.forEach(en=>actBar.classList.toggle("show", !en.isIntersecting));
+  },{threshold:.05});
+  coverIO.observe(document.getElementById("cover"));
+  /* 滚动兜底：后台标签页等环境 IO 可能暂停，用滚动位置直接判定 */
+  const coverEl=document.getElementById("cover");
+  const barUpdate=()=>actBar.classList.toggle("show", coverEl.getBoundingClientRect().bottom < 60);
+  window.addEventListener("scroll", barUpdate, {passive:true});
+  barUpdate();
+  const actIO=new IntersectionObserver(es=>{
+    es.forEach(en=>{
+      if(!en.isIntersecting) return;
+      const i=acts.indexOf(en.target);
+      dots.forEach(x=>x.classList.toggle("active", +x.dataset.i===i));
+    });
+  },{rootMargin:"-35% 0px -55% 0px"});
+  acts.forEach(a=>actIO.observe(a));
+
+  /* ---- 连演 ---- */
+  const tourBtn=document.getElementById("tourBtn");
+  let tourTimer=null, tourIdx=0;
+  function startTour(){
+    tourTimer=setInterval(()=>{
+      acts[tourIdx].scrollIntoView({behavior:reduced?"auto":"smooth",block:"start"});
+      tourIdx++;
+      if(tourIdx>=acts.length) stopTour();
+    },3200);
+    tourIdx=0;
+    acts[0].scrollIntoView({behavior:reduced?"auto":"smooth",block:"start"});
+    tourIdx=1;
+    tourBtn.textContent="停止 ■";
+    tourBtn.classList.add("on");
+  }
+  function stopTour(){
+    if(!tourTimer) return;
+    clearInterval(tourTimer); tourTimer=null;
+    tourBtn.textContent="连演 ▸";
+    tourBtn.classList.remove("on");
+  }
+  tourBtn.addEventListener("click",()=>{ tourTimer?stopTour():startTour(); });
+
+  /* ---- 显影与盖章 ---- */
+  const revs=[...document.querySelectorAll(".reveal")];
+  const stampEls=[...document.querySelectorAll(".stamp")];
+  if(reduced){
+    revs.forEach(e=>e.classList.add("on"));
+    stampEls.forEach(e=>e.classList.add("stamped"));
+    houseBars.forEach(b=>b.style.height=b.dataset.h);
+  } else {
+    const io=new IntersectionObserver(es=>{
+      es.forEach(en=>{
+        if(!en.isIntersecting) return;
+        en.target.classList.add("on");
+        io.unobserve(en.target);
+      });
+    },{threshold:.1});
+    revs.forEach(e=>io.observe(e));
+    const sio=new IntersectionObserver(es=>{
+      es.forEach(en=>{
+        if(!en.isIntersecting) return;
+        en.target.classList.add("stamped");
+        sio.unobserve(en.target);
+      });
+    },{threshold:.6});
+    stampEls.forEach(e=>sio.observe(e));
+    const gio=new IntersectionObserver(es=>{
+      es.forEach(en=>{
+        if(!en.isIntersecting) return;
+        if(en.target===statBand){
+          houseBars.forEach((b,i)=>setTimeout(()=>b.style.height=b.dataset.h,i*110));
+          gio.unobserve(statBand);
+        }
+      });
+    },{threshold:.3});
+    gio.observe(statBand);
+
+    /* 兜底：后台标签页等环境会暂停 IntersectionObserver，确保内容最终可见 */
+    setTimeout(()=>{
+      revs.forEach(e=>e.classList.add("on"));
+      stampEls.forEach(e=>e.classList.add("stamped"));
+      houseBars.forEach(b=>b.style.height=b.dataset.h);
+    },4000);
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026-W37 · 七日仪</title>
+<!--
+  《七日仪》 SEVEN-DAY ORBITAL ｜ 天文仪器版
+  weekly-work-report 模板之二（数据诗意方向）
+  · 使用：双击即可在浏览器中浏览（内置 2026-W37 示例数据）。
+  · 生成新周报：只需替换下方 <script> 中的 REPORT_DATA 数据罐头（与 editorial-ledger.html、
+    stage-programme.html 同构，可互换；类型分布与记录统计由模板自动推导）。
+  · 预览"空周"状态：在地址后加 ?empty=1 。
+  · 自包含：无外部字体、脚本、图片；纯原生 SVG，可离线浏览。
+-->
+<style>
+  :root{
+    --ivory:#f4f1e6;
+    --ivory-deep:#eae5d4;
+    --ink:#2a3550;
+    --ink-soft:#4a5570;
+    --muted:#8a8f9e;
+    --gold:#a57f2c;
+    --moss:#5e7261;
+    --umber:#7c6a54;
+    --slate:#54718c;
+    --hair:rgba(42,53,80,.30);
+    --hair-soft:rgba(42,53,80,.15);
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+    --serif:"Songti SC","STSong","Noto Serif SC","Source Han Serif SC","SimSun",Georgia,"Times New Roman",serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto}
+    *{transition:none!important;animation:none!important}
+  }
+  body{
+    background:var(--ivory);
+    color:var(--ink);
+    font-family:var(--serif);
+    line-height:1.75;
+    -webkit-font-smoothing:antialiased;
+  }
+  .sheet{max-width:1180px;margin:0 auto;padding:0 32px}
+  @media (max-width:640px){ .sheet{padding:0 18px} }
+
+  /* ============ 仪器铭牌 ============ */
+  .plate{
+    display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap;
+    padding:20px 2px 14px;border-bottom:1px solid var(--ink);
+    font-family:var(--sans);font-size:12px;color:var(--ink-soft);letter-spacing:.14em;
+  }
+  .plate .p-name{font-weight:700;color:var(--ink);letter-spacing:.28em}
+  .plate .p-name .en{font-size:10px;color:var(--muted);letter-spacing:.3em;margin-left:10px}
+  .plate .p-serial{color:var(--gold);letter-spacing:.2em}
+  .plate .p-stat b{color:var(--ink);font-weight:700}
+
+  /* ============ 题记 ============ */
+  .epigraph{padding:52px 0 8px;display:grid;grid-template-columns:1fr auto;gap:24px;align-items:end}
+  .epigraph h1{font-size:clamp(30px,4.6vw,46px);font-weight:900;letter-spacing:.06em;line-height:1.35}
+  .epigraph h1 .ring{color:var(--gold)}
+  .epigraph .ep-sub{font-family:var(--sans);font-size:13.5px;color:var(--ink-soft);margin-top:14px;max-width:560px;line-height:1.9}
+  .epigraph .ep-mark{
+    writing-mode:vertical-rl;font-size:12px;letter-spacing:.5em;color:var(--muted);
+    border-left:1px solid var(--hair);padding-left:14px;height:120px;
+  }
+  @media (max-width:760px){ .epigraph{grid-template-columns:1fr} .epigraph .ep-mark{display:none} }
+
+  /* ============ 主观测台 ============ */
+  .stage{
+    display:grid;grid-template-columns:minmax(0,1fr) 390px;gap:44px;
+    padding:30px 0 10px;align-items:start;
+  }
+  @media (max-width:980px){ .stage{grid-template-columns:1fr;gap:20px} }
+
+  .dial-wrap{position:relative;max-width:600px;margin:0 auto;width:100%}
+  .dial-svg{width:100%;height:auto;display:block}
+  .dial-crosshair{stroke:var(--ink);opacity:.14;stroke-width:1}
+  .dial-deco{fill:none;stroke:var(--hair);stroke-width:1}
+  .tick{stroke:var(--hair);stroke-width:1}
+  .tick.major{stroke:var(--ink-soft)}
+  .sector .hit{fill:transparent;stroke:none;cursor:pointer}
+  .sector .status{fill:none;stroke:var(--ink);stroke-width:2}
+  .sector.is-miss .status{stroke-dasharray:5 5;stroke:var(--ink-soft);opacity:.7}
+  .sector.is-weekend .status{stroke-dasharray:1 6;stroke-linecap:round;stroke:var(--muted)}
+  .sector .band{fill:none;stroke-width:16;transition:opacity .3s}
+  .sector .sel-arc{fill:none;stroke:var(--gold);stroke-width:4.5;opacity:0;transition:opacity .35s}
+  .sector{transition:opacity .45s}
+  .dial.has-sel .sector:not(.sel){opacity:.45}
+  .sector.sel .sel-arc{opacity:1}
+  .sector.sel .status{stroke-width:3}
+  .day-label{font-family:var(--sans);font-size:12.5px;fill:var(--ink-soft);letter-spacing:.18em}
+  .day-label.is-miss{fill:var(--muted)}
+  .day-label.sel{fill:var(--gold);font-weight:700}
+  .needle line{stroke:var(--ink);stroke-width:1.6}
+  .needle path{fill:var(--ink)}
+  .needle circle.hub{fill:var(--ink);stroke:var(--ivory);stroke-width:2.5}
+  .needle{transition:transform .8s cubic-bezier(.55,.06,.25,1)}
+  .needle.idle{opacity:.25}
+
+  .center-read{
+    position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    text-align:center;pointer-events:none;width:200px;
+  }
+  .center-read .cr-week{font-family:var(--sans);font-size:11px;letter-spacing:.3em;color:var(--gold);margin-bottom:6px;min-height:16px;transition:opacity .25s}
+  .center-read .cr-num{
+    font-size:74px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums;
+    transition:color .25s;
+  }
+  .center-read .cr-num.day{color:var(--gold);font-size:60px}
+  .center-read .cr-cap{font-family:var(--sans);font-size:11.5px;color:var(--ink-soft);letter-spacing:.22em;margin-top:8px;line-height:1.9}
+  @media (max-width:420px){
+    .center-read .cr-num{font-size:56px}
+    .center-read .cr-num.day{font-size:46px}
+  }
+
+  .legend{
+    display:flex;justify-content:center;gap:20px;flex-wrap:wrap;margin-top:6px;
+    font-family:var(--sans);font-size:12px;color:var(--ink-soft);letter-spacing:.1em;
+  }
+  .legend .lg{display:flex;align-items:center;gap:7px}
+  .legend .chip{width:10px;height:10px;display:inline-block}
+  .tour-row{text-align:center;margin-top:20px}
+  .tour-btn{
+    appearance:none;background:none;cursor:pointer;font-family:var(--sans);
+    border:1px solid var(--ink);color:var(--ink);letter-spacing:.34em;text-indent:.34em;
+    font-size:13px;padding:11px 30px;border-radius:999px;transition:all .3s;
+  }
+  .tour-btn:hover{background:var(--ink);color:var(--ivory)}
+  .tour-btn.on{background:var(--gold);border-color:var(--gold);color:var(--ivory)}
+  .kbd-hint{font-family:var(--sans);font-size:11px;color:var(--muted);letter-spacing:.16em;margin-top:10px}
+  .kbd-hint kbd{border:1px solid var(--hair);padding:1px 6px;border-radius:3px;font-family:var(--sans);font-size:10px}
+
+  /* ============ 观测面板 ============ */
+  .panel{border:1px solid var(--ink);position:relative;background:var(--ivory)}
+  .panel::before{content:"";position:absolute;inset:5px;border:1px solid var(--hair-soft);pointer-events:none}
+  .panel-head{
+    display:flex;justify-content:space-between;align-items:baseline;
+    padding:16px 22px 12px;border-bottom:1px solid var(--hair);
+    font-family:var(--sans);font-size:11px;letter-spacing:.3em;color:var(--muted);
+  }
+  .panel-head .ph-r{color:var(--gold)}
+  .panel-body{padding:20px 24px 24px;min-height:330px}
+  .day-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:4px}
+  .day-head .dh-w{font-size:29px;font-weight:900;letter-spacing:.1em}
+  .day-head .dh-d{font-family:var(--sans);font-size:13px;color:var(--muted);letter-spacing:.14em}
+  .seal{
+    display:inline-block;font-family:var(--sans);font-size:10.5px;letter-spacing:.26em;text-indent:.26em;
+    padding:3px 8px 3px 10px;border:1.5px solid var(--ink);color:var(--ink);margin-left:auto;
+  }
+  .seal.miss{border-style:dashed;border-color:var(--umber);color:var(--umber)}
+  .seal.weekend{border-style:dotted;border-color:var(--muted);color:var(--muted)}
+  .day-summary{font-size:14px;color:var(--ink-soft);border-left:2px solid var(--gold);padding-left:12px;margin:10px 0 4px}
+  .slot{margin-top:18px}
+  .slot-label{
+    font-family:var(--sans);font-size:11px;letter-spacing:.34em;color:var(--muted);
+    display:flex;align-items:center;gap:12px;margin-bottom:8px;
+  }
+  .slot-label::after{content:"";flex:1;border-top:1px solid var(--hair-soft)}
+  .entry{display:flex;gap:10px;padding:6px 0;font-size:14px;line-height:1.7}
+  .entry .etick{flex:none;width:9px;height:9px;margin-top:.55em}
+  .entry .etype{flex:none;font-family:var(--sans);font-size:11px;color:var(--muted);letter-spacing:.1em;margin-top:.35em;width:34px}
+  .panel-empty{
+    text-align:center;padding:56px 10px;color:var(--ink-soft);
+  }
+  .panel-empty .pe-mark{font-size:34px;color:var(--hair);line-height:1}
+  .panel-empty .pe-t{font-size:18px;font-weight:900;letter-spacing:.3em;margin-top:14px}
+  .panel-empty .pe-p{font-family:var(--sans);font-size:12.5px;color:var(--muted);margin-top:10px;line-height:2}
+
+  .panel-find{border-top:1px solid var(--hair);padding:16px 24px 22px}
+  .panel-find .pf-h{font-family:var(--sans);font-size:11px;letter-spacing:.34em;color:var(--gold);margin-bottom:8px}
+  .panel-find ul{list-style:none}
+  .panel-find li{font-size:13.5px;padding:7px 0 7px 18px;position:relative;color:var(--ink-soft);line-height:1.6;border-bottom:1px dashed var(--hair-soft)}
+  .panel-find li:last-child{border-bottom:none}
+  .panel-find li::before{content:"◆";position:absolute;left:0;top:.45em;font-size:9px;color:var(--gold)}
+
+  /* ============ 下部抽屉：记数 · 年轮 · 附件 ============ */
+  .drawer{
+    margin:56px 0 0;border-top:1px solid var(--ink);
+    display:grid;grid-template-columns:1.25fr 1fr 1.15fr;
+  }
+  .drawer-cell{padding:26px 26px 34px;border-left:1px solid var(--hair);min-width:0}
+  .drawer-cell:first-child{border-left:none}
+  @media (max-width:920px){
+    .drawer{grid-template-columns:1fr}
+    .drawer-cell{border-left:none;border-top:1px solid var(--hair)}
+    .drawer-cell:first-child{border-top:none}
+  }
+  .dc-h{font-size:15px;font-weight:900;letter-spacing:.3em;margin-bottom:4px}
+  .dc-en{font-family:var(--sans);font-size:10px;letter-spacing:.28em;color:var(--muted);margin-bottom:18px}
+
+  /* 记数 · 正字 */
+  .tally-row{display:flex;align-items:flex-start;gap:14px;padding:9px 0;border-bottom:1px dashed var(--hair-soft)}
+  .tally-row:last-child{border-bottom:none}
+  .tally-svg{flex:none;margin-top:2px}
+  .tally-svg line{stroke:var(--ink);stroke-width:2;stroke-linecap:square}
+  .tally-name{font-size:13.5px;line-height:1.45}
+  .tally-count{font-family:var(--sans);font-size:11px;color:var(--muted);letter-spacing:.1em;margin-top:2px}
+
+  /* 年轮 */
+  .rings-wrap{display:flex;gap:18px;align-items:center}
+  .rings-svg{flex:none;width:158px;height:158px}
+  .rings-svg .ring-base{fill:none;stroke:var(--hair-soft);stroke-width:5}
+  .rings-svg .ring-arc{fill:none;stroke:var(--ink);stroke-width:5;transition:stroke-width .25s,opacity .25s;cursor:pointer}
+  .rings-svg .ring-arc.cur{stroke:var(--gold);stroke-width:7}
+  .rings-svg .ring-arc:hover,.rings-svg .ring-arc.hl{stroke-width:8;opacity:1!important}
+  .rings-center{font-family:var(--sans);font-size:10px;fill:var(--muted);letter-spacing:.2em}
+  .rings-legend{list-style:none;flex:1;min-width:0}
+  .rings-legend li{
+    display:flex;justify-content:space-between;gap:8px;font-family:var(--sans);font-size:12px;
+    color:var(--muted);padding:3.5px 0;letter-spacing:.12em;cursor:default;transition:color .2s;
+  }
+  .rings-legend li.hl{color:var(--ink)}
+  .rings-legend li.cur{color:var(--gold);font-weight:700}
+  .rings-legend .rl-v{font-variant-numeric:tabular-nums}
+  .rings-legend .rl-bar{flex:1;border-bottom:1px solid var(--hair-soft);transform:translateY(-4px)}
+
+  /* 附件 */
+  .att-row{display:flex;gap:12px;align-items:baseline;padding:8px 0;border-bottom:1px dashed var(--hair-soft);text-decoration:none;color:inherit}
+  .att-row:last-child{border-bottom:none}
+  .att-glyph{
+    flex:none;width:22px;height:22px;border:1px solid var(--ink);display:grid;place-items:center;
+    font-size:11px;font-family:var(--sans);
+  }
+  .att-name{font-size:13.5px;line-height:1.5}
+  .att-meta{font-family:var(--sans);font-size:10.5px;color:var(--muted);letter-spacing:.06em;margin-top:1px}
+  .att-row:hover .att-name{color:var(--gold)}
+  .att-empty{font-family:var(--sans);font-size:12px;color:var(--muted);letter-spacing:.2em;padding:10px 0}
+
+  /* ============ 尾铭牌 ============ */
+  .colophon{
+    margin-top:60px;border-top:1px solid var(--ink);padding:18px 2px 44px;
+    display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;
+    font-family:var(--sans);font-size:11px;color:var(--muted);letter-spacing:.14em;
+  }
+  .colophon a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid var(--hair)}
+  .colophon a:hover{color:var(--gold);border-bottom-color:var(--gold)}
+
+  .reveal{opacity:0;transform:translateY(12px);transition:opacity .9s ease,transform .9s ease}
+  .reveal.on{opacity:1;transform:none}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <header class="plate">
+    <span class="p-name">七日仪<span class="en">SEVEN-DAY ORBITAL</span></span>
+    <span>周期 <b id="plRange">—</b> · <span id="plTeam">—</span></span>
+    <span class="p-serial" id="plSerial">ORB-0000-W00</span>
+    <span class="p-stat">记录 <b id="plRec">0/0</b> 工作日 · 完整度 <b id="plRate">0%</b></span>
+  </header>
+
+  <section class="epigraph reveal">
+    <div>
+      <h1>一周，是一个<span class="ring">闭环</span>。</h1>
+      <p class="ep-sub">七天不是七个格子，而是一圈行程。仪器上每个扇区是一天，扇区里叠着的色带是那天做过的每一类事，虚线即缺席。转动这台仪器，把一周读完。</p>
+    </div>
+    <div class="ep-mark" id="epMark">记录每一天</div>
+  </section>
+
+  <main class="stage">
+    <div>
+      <div class="dial-wrap reveal" id="dialWrap">
+        <svg class="dial-svg" id="dial" viewBox="0 0 560 560" role="img" aria-label="一周工作圆环图"></svg>
+        <div class="center-read" aria-hidden="true">
+          <div class="cr-week" id="crWeek"></div>
+          <div class="cr-num" id="crNum">0</div>
+          <div class="cr-cap" id="crCap"></div>
+        </div>
+      </div>
+      <div class="legend" id="legend"></div>
+      <div class="tour-row reveal">
+        <button class="tour-btn" id="tourBtn" type="button">开始巡天</button>
+        <div class="kbd-hint">或点击扇区 · <kbd>←</kbd> <kbd>→</kbd> 切换观测日</div>
+      </div>
+    </div>
+
+    <aside class="panel reveal" aria-live="polite">
+      <div class="panel-head"><span>观测台 · OBSERVATORY</span><span class="ph-r" id="panelDate">—</span></div>
+      <div class="panel-body" id="panelBody"></div>
+      <div class="panel-find">
+        <div class="pf-h">重要发现 · FINDINGS</div>
+        <ul id="findList"></ul>
+      </div>
+    </aside>
+  </main>
+
+  <section class="drawer reveal">
+    <div class="drawer-cell">
+      <h2 class="dc-h">观测记数</h2>
+      <div class="dc-en">TALLY · 正字计数</div>
+      <div id="tallyBox"></div>
+    </div>
+    <div class="drawer-cell">
+      <h2 class="dc-h">年轮</h2>
+      <div class="dc-en">GROWTH RINGS · 近五周</div>
+      <div class="rings-wrap">
+        <svg class="rings-svg" id="rings" viewBox="0 0 220 220" role="img" aria-label="近五周记录年轮图"></svg>
+        <ul class="rings-legend" id="ringsLegend"></ul>
+      </div>
+    </div>
+    <div class="drawer-cell">
+      <h2 class="dc-h">附件档案</h2>
+      <div class="dc-en">APPENDIX · 资料汇总</div>
+      <div id="attBox"></div>
+    </div>
+  </section>
+
+  <footer class="colophon">
+    <span id="cpGen">七日仪 · 由 WorkBuddy 于 — 观测印制</span>
+    <span>数据来源 <span id="cpSrc">—</span> · <a href="../templates/index.html">返回版本目录</a></span>
+  </footer>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   ▼▼▼ 数据罐头 DATA CARTRIDGE ▼▼▼
+   生成新周报：替换此对象即可。days 为唯一必填来源，
+   类型分布 / 记录天数 / 完整度均由模板自动推导。
+   与 editorial-ledger.html、stage-programme.html 的罐头同构，可互换。
+═══════════════════════════════════════════════════════════════ */
+const REPORT_DATA = {
+  meta: { year: 2026, week: 37, range: "09/07 – 09/13", team: "产品研发组",
+          generatedAt: "2026-09-14 08:00", source: ".workbuddy/memory/" },
+  days: [
+    { date:"09/07", weekday:"周一", status:"work", summary:"完成周报模块数据层重构", types:["开发","会议","文档"],
+      morning:[ {type:"会议",text:"参加 Q4 规划对齐会，认领周报可视化需求"},
+                {type:"开发",text:"搭建报表数据聚合层，打通日志读取管线"} ],
+      afternoon:[ {type:"开发",text:"完成周报模板渲染引擎初版，支持三类图表"},
+                  {type:"文档",text:"整理数据接口约定，输出接入文档 v0.1"} ] },
+    { date:"09/08", weekday:"周二", status:"work", summary:"联调周历热力图与统计口径", types:["开发","测试","会议"],
+      morning:[ {type:"开发",text:"实现周历热力图组件，支持已记录 / 缺失 / 周末三态"},
+                {type:"测试",text:"对日志解析边界情况补充 12 个用例"} ],
+      afternoon:[ {type:"会议",text:"与数据组对齐统计口径，确定缺勤判定规则"},
+                  {type:"开发",text:"修复空日志目录时的崩溃，补充警告日志"} ] },
+    { date:"09/09", weekday:"周三", status:"work", summary:"发布内部试用版，收集首轮反馈", types:["测试","文档","会议","开发"],
+      morning:[ {type:"测试",text:"完成三台设备兼容性回归，修复两处样式塌陷"},
+                {type:"文档",text:"撰写试用指引与常见问题说明"} ],
+      afternoon:[ {type:"会议",text:"组织内部试用宣讲，收集 9 条反馈"},
+                  {type:"开发",text:"按反馈调整趋势图坐标轴与配色"} ] },
+    { date:"09/10", weekday:"周四", status:"miss", summary:"", types:[], morning:[], afternoon:[] },
+    { date:"09/11", weekday:"周五", status:"work", summary:"周报模块通过评审，进入下阶段", types:["会议","开发","学习","文档"],
+      morning:[ {type:"会议",text:"周报模块技术评审通过，确认开放三套模板方向"},
+                {type:"开发",text:"沉淀模板参数化方案，支持自定义配色"} ],
+      afternoon:[ {type:"学习",text:"研究 CSS 竖排与分栏排版在报表中的应用"},
+                  {type:"文档",text:"更新路线图，标注下周里程碑"} ] },
+    { date:"09/12", weekday:"周六", status:"weekend", summary:"", types:[], morning:[], afternoon:[] },
+    { date:"09/13", weekday:"周日", status:"weekend", summary:"", types:[], morning:[], afternoon:[] }
+  ],
+  highlights: [
+    { level:"gold",   title:"周报模块通过技术评审，确定开放三套模板方向",
+      detail:"评审会确认了参数化配色与模板选择方案，模块进入推广准备阶段，预计下周发布到技能市场，供更多团队开箱使用。" },
+    { level:"green",  title:"日志读取管线打通，端到端三秒生成周报",
+      detail:"从读取 .workbuddy/memory 下的每日日志，到渲染出完整 HTML 周报，全链路首次跑通，平均生成耗时控制在三秒以内。" },
+    { level:"purple", title:"内部试用收集九条反馈，全部纳入排期",
+      detail:"首轮试用覆盖三个团队，反馈集中在移动端阅读与打印两个场景，已逐条建立跟进项，并入下周迭代计划。" }
+  ],
+  materials: [
+    { type:"img",   name:"周报模块架构草图",   meta:"09/07 · 白板照片" },
+    { type:"doc",   name:"数据接口约定 v0.1", meta:"09/07 · 接入文档" },
+    { type:"img",   name:"热力图三状态截图",   meta:"09/08 · 界面截图" },
+    { type:"video", name:"内部试用宣讲录像",   meta:"09/09 · 12 分钟" },
+    { type:"doc",   name:"试用反馈汇总表",     meta:"09/09 · 9 条记录" },
+    { type:"doc",   name:"评审结论与路线图",   meta:"09/11 · 会议纪要" }
+  ],
+  activities: [
+    { name:"代码提交", count:12 }, { name:"会议沟通", count:6 }, { name:"缺陷修复", count:5 },
+    { name:"文档产出", count:4 },  { name:"用例执行", count:26 }
+  ],
+  trend: [ {week:"W33",value:3},{week:"W34",value:4},{week:"W35",value:2},{week:"W36",value:5},{week:"W37",value:4} ],
+  plan: [
+    { priority:1, title:"发布三套模板皮肤至技能市场", note:"完成文档与示例，开放社区试用" },
+    { priority:2, title:"补齐移动端阅读与打印样式",   note:"针对首轮反馈的两处样式塌陷重点验证" },
+    { priority:3, title:"启动自动化推送灰度",         note:"先覆盖两个团队，验证周一推送链路" }
+  ]
+};
+/* ═══════════════════════ ▲▲▲ 数据罐头结束 ▲▲▲ ═══════════════════════ */
+
+(function(){
+  "use strict";
+  const D = REPORT_DATA;
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const SVGNS = "http://www.w3.org/2000/svg";
+
+  /* ?empty=1 演示：模拟"全周无记录"的真实空数据 */
+  if (new URLSearchParams(location.search).has("empty")) {
+    D.days = D.days.map((d,i)=>({ date:d.date, weekday:d.weekday, status:i>=5?"weekend":"miss",
+      summary:"", types:[], morning:[], afternoon:[] }));
+    D.highlights = []; D.materials = []; D.activities = []; D.trend = []; D.plan = [];
+  }
+  function sv(tag, attrs, parent){
+    const n = document.createElementNS(SVGNS, tag);
+    if (attrs) for (const k in attrs){ if (attrs[k] != null) n.setAttribute(k, attrs[k]); }
+    if (parent) parent.append(n);
+    return n;
+  }
+  function h(tag, attrs, ...children){
+    const n = document.createElement(tag);
+    if (attrs) for (const k in attrs){
+      const v = attrs[k];
+      if (v == null) continue;
+      if (k === "class") n.className = v;
+      else if (k === "text") n.textContent = v;
+      else if (k === "html") n.innerHTML = v;
+      else if (k.startsWith("on")) n.addEventListener(k.slice(2), v);
+      else n.setAttribute(k, v);
+    }
+    for (const c of children){ if (c == null) continue; n.append(c.nodeType ? c : document.createTextNode(c)); }
+    return n;
+  }
+
+  /* ---- 推导 ---- */
+  const workdays = D.days.filter(d=>d.status!=="weekend");
+  const recorded = D.days.filter(d=>d.status==="work");
+  const allEntries = [];
+  D.days.forEach(d=>{ (d.morning||[]).forEach(e=>allEntries.push(e)); (d.afternoon||[]).forEach(e=>allEntries.push(e)); });
+  const dayEntries = d => (d.morning||[]).length + (d.afternoon||[]).length;
+  const rate = workdays.length ? Math.round(recorded.length/workdays.length*100) : 0;
+  const isEmpty = new URLSearchParams(location.search).has("empty") || (recorded.length===0 && allEntries.length===0);
+
+  /* 类型调色（固定映射 + 兜底轮换） */
+  const TYPE_COLORS = { "开发":"#2a3550", "会议":"#a57f2c", "测试":"#5e7261", "文档":"#7c6a54", "学习":"#54718c" };
+  const FALLBACK = ["#2a3550","#a57f2c","#5e7261","#7c6a54","#54718c","#41597a","#8a6d3b"];
+  const typeSet = [...new Set(allEntries.map(e=>e.type))];
+  const typeColor = t => TYPE_COLORS[t] || FALLBACK[typeSet.indexOf(t) % FALLBACK.length];
+
+  /* ---- 铭牌 / 尾铭 ---- */
+  document.getElementById("plRange").textContent = D.meta.range;
+  document.getElementById("plTeam").textContent = D.meta.team || "";
+  document.getElementById("plSerial").textContent = `ORB-${D.meta.year}-W${D.meta.week}`;
+  document.getElementById("plRec").textContent = `${recorded.length}/${workdays.length}`;
+  document.getElementById("plRate").textContent = rate + "%";
+  document.getElementById("epMark").textContent = `${D.meta.year} · 第 ${D.meta.week} 周`;
+  document.getElementById("cpGen").textContent = `七日仪 · 由 WorkBuddy 于 ${D.meta.generatedAt || "本周一"} 观测印制`;
+  document.getElementById("cpSrc").textContent = D.meta.source || "";
+  document.title = `${D.meta.year}-W${D.meta.week} · 七日仪`;
+
+  /* ---- 圆环几何 ---- */
+  const CX=280, CY=280;
+  const polar = (r,a)=>{ const rad=a*Math.PI/180; return [CX + r*Math.sin(rad), CY - r*Math.cos(rad)]; };
+  function arcPath(r,a0,a1){
+    const [x0,y0]=polar(r,a0), [x1,y1]=polar(r,a1);
+    const large=(a1-a0)>180?1:0;
+    return `M ${x0.toFixed(2)} ${y0.toFixed(2)} A ${r} ${r} 0 ${large} 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`;
+  }
+  function wedgePath(r0,r1,a0,a1){
+    const [x0,y0]=polar(r0,a0),[x1,y1]=polar(r1,a0),[x2,y2]=polar(r1,a1),[x3,y3]=polar(r0,a1);
+    const large=(a1-a0)>180?1:0;
+    return `M ${x0.toFixed(2)} ${y0.toFixed(2)} L ${x1.toFixed(2)} ${y1.toFixed(2)} A ${r1} ${r1} 0 ${large} 1 ${x2.toFixed(2)} ${y2.toFixed(2)} L ${x3.toFixed(2)} ${y3.toFixed(2)} A ${r0} ${r0} 0 ${large} 0 ${x0.toFixed(2)} ${y0.toFixed(2)} Z`;
+  }
+
+  const SEG = 360/7, GAP = 3;
+  const dayMid = i => i*SEG;
+  const dial = document.getElementById("dial");
+
+  /* 静态装饰层 */
+  sv("circle",{class:"dial-deco",cx:CX,cy:CY,r:252},dial);
+  sv("circle",{class:"dial-deco",cx:CX,cy:CY,r:96,"stroke-dasharray":"1 4"},dial);
+  sv("line",{class:"dial-crosshair",x1:CX-252,y1:CY,x2:CX+252,y2:CY},dial);
+  sv("line",{class:"dial-crosshair",x1:CX,y1:CY-252,x2:CX,y2:CY+252},dial);
+  for(let t=0;t<60;t++){
+    const major=t%5===0;
+    const [x0,y0]=polar(major?234:238, t*6), [x1,y1]=polar(246, t*6);
+    sv("line",{class:"tick"+(major?" major":""),x1,y1,x2:x1,y2:y1},dial);
+  }
+
+  /* 扇区 */
+  const sectors=[];
+  D.days.forEach((d,i)=>{
+    const a0=dayMid(i)-SEG/2+GAP, a1=dayMid(i)+SEG/2-GAP;
+    const g=sv("g",{class:"sector"+(d.status==="miss"?" is-miss":d.status==="weekend"?" is-weekend":""),"data-i":i},dial);
+    sv("path",{class:"status",d:arcPath(208,a0,a1)},g);
+    const entries=(d.morning||[]).concat(d.afternoon||[]);
+    const total=entries.length;
+    if(total){
+      const byType={};
+      entries.forEach(e=>{ byType[e.type]=(byType[e.type]||0)+1; });
+      let acc=0;
+      Object.keys(byType).forEach((t,k)=>{
+        const span=(a1-a0)*(byType[t]/total);
+        const b0=a0+(a1-a0)*(acc/total);
+        sv("path",{class:"band",d:arcPath(186-k*27,b0,b0+Math.max(span-.8,.6)),stroke:typeColor(t)},g);
+        acc+=byType[t];
+      });
+    }
+    sv("path",{class:"sel-arc",d:arcPath(208,a0-1,a1+1)},g);
+    const hit=sv("path",{class:"hit",d:wedgePath(96,252,a0-GAP,a1+GAP),"data-i":i},g);
+    hit.addEventListener("mouseenter",()=>hoverDay(i));
+    hit.addEventListener("mouseleave",()=>hoverDay(null));
+    hit.addEventListener("click",()=>{ stopTour(); select(i); });
+    /* 外圈日名 */
+    const [lx,ly]=polar(224,dayMid(i));
+    const flip=(dayMid(i)%360)>90 && (dayMid(i)%360)<270;
+    const label=sv("text",{class:"day-label"+(d.status==="miss"?" is-miss":""),
+      x:lx,y:ly,"text-anchor":"middle","dominant-baseline":"middle","data-i":i,
+      transform:`rotate(${dayMid(i)+(flip?180:0)} ${lx} ${ly})`},dial);
+    label.textContent=d.weekday;
+    sectors.push(g);
+  });
+
+  /* 指针 */
+  const needle=sv("g",{class:"needle idle",id:"needle"},dial);
+  sv("line",{x1:CX,y1:CY-70,x2:CX,y2:CY-198},needle);
+  sv("path",{d:`M ${CX} ${CY-206} L ${CX-4} ${CY-196} L ${CX+4} ${CY-196} Z`},needle);
+  sv("circle",{class:"hub",cx:CX,cy:CY,r:6},needle);
+  needle.style.transformBox="view-box";
+  needle.style.transformOrigin="50% 50%";
+
+  /* ---- 中央读数 ---- */
+  const crWeek=document.getElementById("crWeek"),
+        crNum=document.getElementById("crNum"),
+        crCap=document.getElementById("crCap");
+  function setCenterGlobal(){
+    crWeek.textContent=`第 ${D.meta.week} 周`;
+    crNum.classList.remove("day");
+    crNum.textContent=String(recorded.length);
+    crCap.innerHTML=`已记录 ${recorded.length} / ${workdays.length} 工作日<br>${allEntries.length} 项工作 · 完整度 ${rate}%`;
+  }
+  function hoverDay(i){
+    if(i==null || isEmpty){ if(i==null) setCenterGlobal(); return; }
+    const d=D.days[i];
+    crWeek.textContent=`${d.weekday} · ${d.date}`;
+    crNum.classList.add("day");
+    crNum.textContent=String(dayEntries(d));
+    crCap.textContent=d.status==="miss"?"此日无观测记录":d.status==="weekend"?"周末 · 休测":"项工作记录";
+  }
+  setCenterGlobal();
+
+  /* ---- 面板 ---- */
+  const panelBody=document.getElementById("panelBody");
+  const panelDate=document.getElementById("panelDate");
+  function renderPanel(i){
+    panelBody.textContent="";
+    if(isEmpty || i==null){
+      panelDate.textContent="—";
+      panelBody.append(h("div",{class:"panel-empty"},
+        h("div",{class:"pe-mark",text:"◌"}),
+        h("div",{class:"pe-t",text:"本周无观测记录"}),
+        h("div",{class:"pe-p",html:"未检索到上周日志文件。<br>安装周报自动化后，这里将逐日亮起。"})));
+      return;
+    }
+    const d=D.days[i];
+    panelDate.textContent=`${d.date} · 记录 ${dayEntries(d)} 项`;
+    panelBody.append(h("div",{class:"day-head"},
+      h("span",{class:"dh-w",text:d.weekday}),
+      h("span",{class:"dh-d",text:d.date}),
+      h("span",{class:"seal"+(d.status==="miss"?" miss":d.status==="weekend"?" weekend":""),
+        text:d.status==="miss"?"无记录":d.status==="weekend"?"休测":"已记录"})));
+    if(d.status==="miss"){
+      panelBody.append(h("div",{class:"panel-empty"},
+        h("div",{class:"pe-mark",text:"—"}),
+        h("div",{class:"pe-t",text:"此日无观测记录"}),
+        h("div",{class:"pe-p",text:"该日未检索到日志文件。"})));
+      return;
+    }
+    if(d.status==="weekend"){
+      panelBody.append(h("div",{class:"panel-empty"},
+        h("div",{class:"pe-mark",text:"☾"}),
+        h("div",{class:"pe-t",text:"周末 · 休测"}),
+        h("div",{class:"pe-p",text:"仪器歇业，无工作记录。"})));
+      return;
+    }
+    if(d.summary) panelBody.append(h("p",{class:"day-summary",text:d.summary}));
+    [["上午 AM",d.morning],["下午 PM",d.afternoon]].forEach(([lab,list])=>{
+      if(!list||!list.length) return;
+      const slot=h("div",{class:"slot"}, h("div",{class:"slot-label",text:lab}));
+      list.forEach(e=>{
+        slot.append(h("div",{class:"entry"},
+          h("span",{class:"etick",style:`background:${typeColor(e.type)}`}),
+          h("span",{class:"etype",text:e.type}),
+          h("span",{class:"etext",text:e.text})));
+      });
+      panelBody.append(slot);
+    });
+  }
+
+  /* ---- 重要发现 ---- */
+  const findList=document.getElementById("findList");
+  (D.highlights||[]).forEach(x=>findList.append(h("li",{text:x.title})));
+  if(!(D.highlights||[]).length) findList.append(h("li",{text:"本周无重要发现"}));
+
+  /* ---- 选择状态 ---- */
+  let sel = isEmpty ? null : Math.max(0, D.days.findIndex(d=>d.status==="work"));
+  function select(i){
+    sel=i;
+    dial.classList.add("has-sel");
+    sectors.forEach((g,k)=>{
+      g.classList.toggle("sel", k===i);
+      const lb=dial.querySelector(`.day-label[data-i="${k}"]`);
+      if(lb) lb.classList.toggle("sel", k===i);
+    });
+    needle.classList.remove("idle");
+    needle.style.transform=`rotate(${dayMid(i)}deg)`;
+    renderPanel(i);
+  }
+  function deselect(){
+    sel=null;
+    dial.classList.remove("has-sel");
+    sectors.forEach((g,k)=>{
+      g.classList.remove("sel");
+      const lb=dial.querySelector(`.day-label[data-i="${k}"]`);
+      if(lb) lb.classList.remove("sel");
+    });
+    needle.classList.add("idle");
+    renderPanel(null);
+  }
+  if(isEmpty){ deselect(); }
+  else if(sel>=0){ select(sel); }
+  else { deselect(); }
+
+  /* 键盘 ← → */
+  document.addEventListener("keydown",e=>{
+    if(e.key!=="ArrowLeft" && e.key!=="ArrowRight") return;
+    if(isEmpty) return;
+    e.preventDefault();
+    stopTour();
+    const n=D.days.length;
+    if(sel==null) select(0);
+    else select((sel + (e.key==="ArrowRight"?1:n-1)) % n);
+  });
+
+  /* ---- 巡天 ---- */
+  const tourBtn=document.getElementById("tourBtn");
+  let tourTimer=null, tourIdx=0;
+  function startTour(){
+    if(isEmpty) return;
+    tourTimer=setInterval(()=>{
+      select(tourIdx % D.days.length);
+      tourIdx++;
+      if(tourIdx>=D.days.length){ stopTour(); }
+    },1700);
+    tourBtn.textContent="停止巡天";
+    tourBtn.classList.add("on");
+    tourIdx=0;
+    select(0);
+    tourIdx=1;
+  }
+  function stopTour(){
+    if(!tourTimer) return;
+    clearInterval(tourTimer);
+    tourTimer=null;
+    tourBtn.textContent="开始巡天";
+    tourBtn.classList.remove("on");
+  }
+  tourBtn.addEventListener("click",()=>{ tourTimer ? stopTour() : startTour(); });
+
+  /* ---- 图例 ---- */
+  const legend=document.getElementById("legend");
+  if(typeSet.length){
+    typeSet.forEach(t=>legend.append(h("span",{class:"lg"},
+      h("span",{class:"chip",style:`background:${typeColor(t)}`}), t)));
+  } else legend.append(h("span",{class:"lg",text:"本周无类型数据"}));
+
+  /* ---- 观测记数（正字） ---- */
+  const tallyBox=document.getElementById("tallyBox");
+  const STROKES=[[1,1,15,1],[8,1,8,14],[8,7.5,15,7.5],[1,1,1,14],[1,14,15,14]];
+  function tallySVG(n){
+    const chars=Math.max(1,Math.ceil(n/5));
+    const s=sv("svg",{class:"tally-svg",viewBox:`0 0 ${chars*22} 16`,width:chars*22,height:16,"aria-hidden":"true"});
+    for(let c=0;c<chars;c++){
+      const rem=n-c*5, draw=Math.min(5,Math.max(rem,0));
+      for(let k=0;k<draw;k++){
+        const [x0,y0,x1,y1]=STROKES[k];
+        sv("line",{x1:c*22+x0,y1:y0,x2:c*22+x1,y2:y1},s);
+      }
+    }
+    return s;
+  }
+  (D.activities||[]).forEach(a=>{
+    tallyBox.append(h("div",{class:"tally-row"}, tallySVG(a.count),
+      h("div",{}, h("div",{class:"tally-name",text:a.name}),
+        h("div",{class:"tally-count",text:`计数 ${a.count}`}))));
+  });
+  if(!(D.activities||[]).length) tallyBox.append(h("div",{class:"att-empty",text:"本周无活动计数"}));
+
+  /* ---- 年轮 ---- */
+  const rings=document.getElementById("rings");
+  const ringsLegend=document.getElementById("ringsLegend");
+  const trend=D.trend||[];
+  const maxT=Math.max(1,...trend.map(t=>t.value));
+  const ringEls=[];
+  trend.forEach((t,i)=>{
+    const r=26+i*19;
+    sv("circle",{class:"ring-base",cx:110,cy:110,r},rings);
+  });
+  trend.forEach((t,i)=>{
+    const r=26+i*19, cur=i===trend.length-1;
+    const frac=Math.max(.02, t.value/maxT);
+    const a0=0, a1=360*frac;
+    function P(ang){ const rad=ang*Math.PI/180; return [110+r*Math.sin(rad), 110-r*Math.cos(rad)]; }
+    const [sx,sy]=P(a0), [ex,ey]=P(a1);
+    const large=(a1-a0)>180?1:0;
+    const arc=sv("path",{class:"ring-arc"+(cur?" cur":""),
+      d:`M ${sx.toFixed(2)} ${sy.toFixed(2)} A ${r} ${r} 0 ${large} 1 ${ex.toFixed(2)} ${ey.toFixed(2)}`,
+      opacity:cur?1:(.4+i*.1),"data-i":i},rings);
+    ringEls.push(arc);
+    const li=h("li",{class:cur?"cur":""},
+      h("span",{text:t.week}),
+      h("span",{class:"rl-bar"}),
+      h("span",{class:"rl-v",text:t.value+" 天"}));
+    li.addEventListener("mouseenter",()=>{ arc.classList.add("hl"); li.classList.add("hl"); });
+    li.addEventListener("mouseleave",()=>{ arc.classList.remove("hl"); li.classList.remove("hl"); });
+    arc.addEventListener("mouseenter",()=>{ arc.classList.add("hl"); li.classList.add("hl"); });
+    arc.addEventListener("mouseleave",()=>{ arc.classList.remove("hl"); li.classList.remove("hl"); });
+    ringEls.push(li);
+    ringsLegend.append(li);
+  });
+  sv("text",{class:"rings-center",x:110,y:113,"text-anchor":"middle"},rings).textContent="五周";
+  if(!trend.length) ringsLegend.append(h("li",{text:"无趋势数据"}));
+
+  /* ---- 附件档案 ---- */
+  const attBox=document.getElementById("attBox");
+  const ATT_GLYPH={img:"图",video:"影",doc:"文"};
+  (D.materials||[]).forEach(m=>{
+    const row=h(m.url?"a":"div",{class:"att-row", ...(m.url?{href:m.url}:{})},
+      h("span",{class:"att-glyph",text:ATT_GLYPH[m.type]||"档"}),
+      h("span",{}, h("div",{class:"att-name",text:m.name}), h("div",{class:"att-meta",text:m.meta||""})));
+    attBox.append(row);
+  });
+  if(!(D.materials||[]).length) attBox.append(h("div",{class:"att-empty",text:"本周无附件"}));
+
+  /* ---- 入场显影 ---- */
+  const revs=[...document.querySelectorAll(".reveal")];
+  if(reduced){ revs.forEach(e=>e.classList.add("on")); }
+  else{
+    const io=new IntersectionObserver(es=>{
+      es.forEach(en=>{ if(en.isIntersecting){ en.target.classList.add("on"); io.unobserve(en.target); } });
+    },{threshold:.12});
+    revs.forEach(e=>io.observe(e));
+    /* 兜底：后台标签页等环境会暂停 IntersectionObserver，确保内容最终可见 */
+    setTimeout(()=>revs.forEach(e=>e.classList.add("on")),4000);
+  }
+})();
+</script>
+</body>
+</html>

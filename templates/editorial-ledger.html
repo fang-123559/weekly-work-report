@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026-W37 · 工作周讯</title>
+<!--
+  《工作周讯》 THE WEEKLY LEDGER ｜ 编辑报纸版
+  weekly-work-report 模板之一（编辑感方向）
+  · 使用：双击即可在浏览器中浏览（内置 2026-W37 示例数据）。
+  · 生成新周报：只需替换下方 <script> 中的 REPORT_DATA 数据罐头（与 orbit-instrument.html、
+    stage-programme.html 两个模板同构，可互换；统计数字由模板自动推导）。
+  · 预览"空周"状态：在地址后加 ?empty=1 。
+  · 自包含：无外部字体、脚本、图片；支持离线浏览与打印（Ctrl/Cmd+P）。
+-->
+<style>
+  :root{
+    --paper:#f7f3ea;
+    --paper-deep:#efe9db;
+    --ink:#211c15;
+    --ink-soft:#4f483c;
+    --muted:#7a7263;
+    --red:#b5342a;
+    --hair:rgba(33,28,21,.30);
+    --hair-soft:rgba(33,28,21,.16);
+    --red-hair:rgba(181,52,42,.45);
+    --serif:"Songti SC","STSong","Noto Serif SC","Source Han Serif SC","SimSun",Georgia,"Times New Roman",serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto}
+    *{transition:none!important;animation:none!important}
+  }
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--serif);
+    line-height:1.72;
+    -webkit-font-smoothing:antialiased;
+  }
+  /* 纸面肌理：极淡的横向压纹，模拟新闻纸 */
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:repeating-linear-gradient(0deg, rgba(33,28,21,.016) 0 1px, transparent 1px 3px);
+  }
+  .paper{max-width:1060px;margin:0 auto;padding:0 28px;position:relative;z-index:1}
+  @media (max-width:640px){ .paper{padding:0 16px} }
+
+  /* ============ 报头 ============ */
+  .mast-top{
+    display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;
+    font-size:12px;letter-spacing:.14em;color:var(--ink-soft);
+    padding:14px 2px 10px;border-bottom:1px solid var(--hair);
+  }
+  .mast-top .red{color:var(--red)}
+  .mast-title{text-align:center;padding:34px 0 6px}
+  .mast-over{
+    font-size:12px;letter-spacing:.52em;text-indent:.52em;color:var(--muted);
+    text-transform:uppercase;margin-bottom:10px;
+  }
+  .mast-title h1{
+    font-size:clamp(52px,9vw,92px);font-weight:900;letter-spacing:.16em;text-indent:.16em;
+    line-height:1.12;
+  }
+  .mast-title h1 .dot{color:var(--red)}
+  .mast-sub{font-size:14px;color:var(--ink-soft);letter-spacing:.12em;margin-top:12px}
+  .mast-sub .sep{color:var(--red);margin:0 .5em}
+  .doublerule{border-top:1px solid var(--ink);border-bottom:1px solid var(--ink);height:5px;margin-top:22px}
+
+  /* 本期提要 */
+  .briefing{display:flex;gap:20px;padding:14px 2px 16px;border-bottom:1px solid var(--hair);align-items:baseline;flex-wrap:wrap}
+  .briefing .label{
+    font-weight:900;color:var(--red);letter-spacing:.3em;white-space:nowrap;font-size:14px;
+  }
+  .briefing ul{list-style:none;display:flex;flex:1;gap:0;flex-wrap:wrap;min-width:0}
+  .briefing li{
+    flex:1 1 200px;font-size:13px;color:var(--ink-soft);padding:0 14px;line-height:1.55;
+    border-left:1px solid var(--hair-soft);min-width:0;
+  }
+  .briefing li:first-child{border-left:none;padding-left:0}
+
+  /* 版面目录（吸顶） */
+  .folio{
+    position:sticky;top:0;z-index:40;background:var(--paper);
+    border-bottom:1px solid var(--ink);
+    display:flex;gap:0;overflow-x:auto;scrollbar-width:none;
+  }
+  .folio::-webkit-scrollbar{display:none}
+  .folio .f-item{
+    appearance:none;background:none;border:none;cursor:pointer;white-space:nowrap;
+    font-family:var(--serif);font-size:13px;letter-spacing:.22em;color:var(--ink-soft);
+    padding:11px 18px 9px;position:relative;transition:color .25s;
+  }
+  .folio .f-item .f-en{display:block;font-size:9px;letter-spacing:.18em;color:var(--muted);margin-top:1px}
+  .folio .f-item::after{
+    content:"";position:absolute;left:14px;right:14px;bottom:-1px;height:2px;
+    background:var(--red);transform:scaleX(0);transition:transform .3s ease;transform-origin:left;
+  }
+  .folio .f-item:hover{color:var(--ink)}
+  .folio .f-item.active{color:var(--red)}
+  .folio .f-item.active::after{transform:scaleX(1)}
+
+  /* ============ 版面骨架 ============ */
+  .page{padding:44px 0 52px}
+  .page + .page{border-top:3px double var(--ink)}
+  .page-kicker{
+    display:flex;align-items:baseline;gap:14px;margin-bottom:26px;
+  }
+  .page-kicker .p-cn{
+    font-weight:900;font-size:17px;letter-spacing:.34em;color:var(--ink);
+  }
+  .page-kicker .p-en{
+    font-size:10.5px;letter-spacing:.26em;color:var(--muted);text-transform:uppercase;
+  }
+  .page-kicker::after{content:"";flex:1;border-top:1px solid var(--hair);transform:translateY(-3px)}
+  .page-kicker .p-no{font-size:12px;color:var(--red);letter-spacing:.1em}
+
+  /* 油墨显影 */
+  .rv{opacity:0;transform:translateY(10px);transition:opacity .8s ease,transform .8s ease}
+  .rv.on{opacity:1;transform:none}
+
+  /* ============ 头版 ============ */
+  .lead-grid{display:grid;grid-template-columns:1.9fr 1fr;gap:0}
+  .lead{padding-right:34px;border-right:1px solid var(--hair)}
+  .lead-kicker{
+    display:inline-block;color:var(--red);font-size:13px;font-weight:900;
+    letter-spacing:.4em;text-indent:.4em;border-top:2px solid var(--red);border-bottom:2px solid var(--red);
+    padding:4px 2px;margin-bottom:18px;
+  }
+  .lead h2{
+    font-size:clamp(27px,4.2vw,42px);font-weight:900;line-height:1.38;letter-spacing:.02em;
+    margin-bottom:6px;
+  }
+  .lead h2 .hl{background:linear-gradient(transparent 68%, rgba(181,52,42,.22) 68%)}
+  .lead-deck{font-size:15.5px;color:var(--ink-soft);margin-top:14px}
+  .lead-deck.clamped{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .lead-byline{font-size:12px;color:var(--muted);letter-spacing:.18em;margin-top:14px}
+  .lead-byline b{color:var(--red);font-weight:900}
+  .lead-more{
+    appearance:none;background:none;border:none;cursor:pointer;font-family:var(--serif);
+    color:var(--red);font-size:13px;letter-spacing:.2em;padding:2px 0;margin-top:12px;
+    border-bottom:1px solid var(--red-hair);transition:border-color .25s;
+  }
+  .lead-more:hover{border-bottom-color:var(--red)}
+  .dropcap::first-letter{
+    float:left;font-size:3.05em;line-height:.92;font-weight:900;color:var(--ink);
+    padding:2px 10px 0 0;
+  }
+
+  .side-briefs{padding-left:30px}
+  .side-briefs h3{
+    font-size:14px;font-weight:900;letter-spacing:.3em;margin-bottom:14px;color:var(--ink);
+  }
+  .side-briefs ol{list-style:none}
+  .side-briefs li{padding:12px 0;border-bottom:1px solid var(--hair-soft)}
+  .side-briefs li:last-of-type{border-bottom:none}
+  .side-briefs .sb-idx{font-size:11px;color:var(--red);letter-spacing:.22em;display:block;margin-bottom:3px}
+  .side-briefs .sb-t{font-size:14.5px;font-weight:700;line-height:1.55}
+  .side-note{
+    margin-top:18px;padding:12px 14px;border:1px solid var(--hair);font-size:12.5px;
+    color:var(--muted);line-height:1.7;position:relative;
+  }
+  .side-note::before{
+    content:"编者按";position:absolute;top:-9px;left:10px;background:var(--paper);
+    padding:0 8px;font-size:11px;color:var(--red);letter-spacing:.3em;
+  }
+  @media (max-width:860px){
+    .lead-grid{grid-template-columns:1fr}
+    .lead{padding-right:0;border-right:none;border-bottom:1px solid var(--hair);padding-bottom:26px;margin-bottom:24px}
+    .side-briefs{padding-left:0}
+  }
+
+  /* ============ 第二版 · 一周要闻 ============ */
+  .col-flow{columns:4;column-gap:30px;column-rule:1px solid var(--hair-soft)}
+  @media (max-width:960px){ .col-flow{columns:3} }
+  @media (max-width:760px){ .col-flow{columns:2} }
+  @media (max-width:540px){ .col-flow{columns:1;column-rule:none} }
+  .brief{break-inside:avoid;padding:0 0 20px;margin-bottom:20px;border-bottom:1px solid var(--hair-soft)}
+  .brief-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px}
+  .brief-day{font-weight:900;font-size:16px;letter-spacing:.1em;position:relative}
+  .brief-day::after{
+    content:"";position:absolute;left:0;right:100%;bottom:-3px;height:2px;background:var(--red);
+    transition:right .35s ease;
+  }
+  .brief:hover .brief-day::after{right:0}
+  .brief-date{font-size:12px;color:var(--muted);letter-spacing:.12em}
+  .brief-sum{font-size:14.5px;font-weight:700;line-height:1.6;margin-bottom:8px}
+  .brief-items{list-style:none;font-size:13px;color:var(--ink-soft)}
+  .brief-items li{padding:3px 0 3px 14px;position:relative;line-height:1.6}
+  .brief-items li::before{content:"";position:absolute;left:0;top:.85em;width:6px;height:2px;background:var(--ink)}
+  .brief-note{font-size:11.5px;color:var(--red);letter-spacing:.06em;margin-top:8px;opacity:.85}
+  .brief.is-miss .no-copy,.brief.is-weekend .no-copy{
+    font-size:12.5px;color:var(--muted);letter-spacing:.28em;
+    border:1px solid var(--hair);padding:14px 6px;text-align:center;margin-top:6px;
+  }
+  .brief.is-weekend .no-copy{border-style:dashed}
+
+  /* ============ 数字版 ============ */
+  .stat-line{display:flex;justify-content:space-between;gap:26px;flex-wrap:wrap;
+    border-top:1px solid var(--ink);border-bottom:1px solid var(--ink);
+    padding:20px 6px 16px;
+  }
+  .stat-line .s-item{min-width:0}
+  .stat-line .s-top{display:flex;align-items:baseline;gap:6px}
+  .stat-line .s-num{
+    font-size:clamp(38px,4.6vw,52px);font-weight:900;line-height:.95;
+    font-variant-numeric:tabular-nums;letter-spacing:.01em;
+  }
+  .stat-line .s-num.alert{color:var(--red)}
+  .stat-line .s-unit{font-size:14px;font-weight:700;color:var(--ink-soft);letter-spacing:.1em}
+  .stat-line .s-lbl{
+    display:block;font-size:11.5px;letter-spacing:.3em;color:var(--muted);margin-top:9px;
+  }
+  .stat-line .s-sep{width:1px;align-self:stretch;background:var(--hair);flex:none}
+  @media (max-width:640px){
+    .stat-line{gap:14px 22px;padding:16px 2px 12px}
+    .stat-line .s-sep{display:none}
+    .stat-line .s-item{flex:1 1 38%}
+  }
+
+  .num-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:44px;margin-top:40px}
+  @media (max-width:820px){ .num-grid{grid-template-columns:1fr;gap:34px} }
+  .num-h{
+    font-size:14px;font-weight:900;letter-spacing:.3em;margin-bottom:18px;display:flex;align-items:baseline;gap:10px;
+  }
+  .num-h .en{font-size:9.5px;color:var(--muted);letter-spacing:.22em;font-weight:400}
+
+  /* 类型分布：细墨条 */
+  .type-bar{display:grid;grid-template-columns:76px 1fr 84px;align-items:center;gap:12px;padding:7px 0}
+  .type-bar .t-name{font-size:13.5px;letter-spacing:.14em;text-align:right;color:var(--ink)}
+  .type-bar .t-track{height:9px;background:var(--paper-deep);position:relative;overflow:hidden}
+  .type-bar .t-fill{
+    position:absolute;left:0;top:0;bottom:0;width:0;
+    background:var(--ink);transition:width 1.1s cubic-bezier(.25,.7,.2,1);
+  }
+  .type-bar.top .t-fill{background:var(--red)}
+  .type-bar .t-val{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums;letter-spacing:.06em;white-space:nowrap}
+  .type-bar.top .t-val{color:var(--red)}
+
+  /* 趋势：细线折线 */
+  .trend-svg{width:100%;height:auto;display:block}
+  .trend-svg .axis{stroke:var(--hair);stroke-width:1}
+  .trend-svg .gridline{stroke:var(--hair-soft);stroke-width:1}
+  .trend-svg .line{fill:none;stroke:var(--ink);stroke-width:2.2}
+  .trend-svg .pt{fill:var(--paper);stroke:var(--ink);stroke-width:1.6}
+  .trend-svg .pt.cur{fill:var(--red);stroke:var(--red)}
+  .trend-svg text{font-family:var(--serif);fill:var(--muted);font-size:11px;letter-spacing:.08em}
+  .trend-svg .v-label{fill:var(--ink-soft);font-size:11.5px;font-weight:700}
+  .trend-svg .v-cur{fill:var(--red);font-size:13px;font-weight:900}
+
+  /* ============ 图片电稿 ============ */
+  .wire-strip{display:grid;grid-template-columns:repeat(6,1fr);gap:18px}
+  @media (max-width:960px){ .wire-strip{grid-template-columns:repeat(3,1fr)} }
+  @media (max-width:540px){ .wire-strip{grid-template-columns:repeat(2,1fr);gap:12px} }
+  .wire-item{display:block;text-decoration:none;color:inherit;min-width:0}
+  .wire-frame{border:1px solid var(--ink);padding:5px;background:var(--paper);position:relative}
+  .wire-frame::after{content:"";position:absolute;inset:2px;border:1px solid var(--hair-soft);pointer-events:none}
+  .wire-frame svg{display:block;width:100%;height:auto}
+  .wire-tag{
+    position:absolute;top:-1px;right:-1px;background:var(--red);color:#f7f3ea;
+    font-size:10px;letter-spacing:.2em;padding:2px 7px 2px 9px;z-index:1;
+  }
+  .wire-cap{font-size:12.5px;line-height:1.5;margin-top:9px;font-weight:700}
+  .wire-meta{font-size:11px;color:var(--muted);margin-top:2px;letter-spacing:.06em}
+  .wire-item:hover .wire-cap{color:var(--red)}
+  .wire-empty{font-size:13px;color:var(--muted);letter-spacing:.2em;padding:16px 0}
+
+  /* ============ 社论 ============ */
+  .editorial{max-width:620px;margin:0 auto}
+  .ed-lede{
+    font-size:17px;line-height:2;text-indent:2em;margin-bottom:26px;
+  }
+  .ed-lede::first-letter{color:var(--red);font-weight:900}
+  .ed-list{list-style:none}
+  .ed-list li{display:flex;gap:18px;padding:20px 0;border-top:1px solid var(--hair-soft)}
+  .ed-list li:first-child{border-top:1px solid var(--hair)}
+  .ed-seal{
+    flex:none;width:34px;height:34px;border:1.5px solid var(--red);color:var(--red);
+    display:grid;place-items:center;font-size:15px;font-weight:900;transform:rotate(-6deg);
+    margin-top:3px;
+  }
+  .ed-seal.s2{border-color:var(--ink);color:var(--ink);transform:rotate(-2deg)}
+  .ed-seal.s3{border-color:var(--muted);color:var(--muted);transform:rotate(4deg);border-style:dashed}
+  .ed-body h4{font-size:16.5px;font-weight:900;line-height:1.5;margin-bottom:4px}
+  .ed-body h4 .ord{color:var(--red);margin-right:.4em}
+  .ed-body p{font-size:13.5px;color:var(--ink-soft);line-height:1.8}
+  .ed-sig{margin-top:30px;text-align:right;font-size:13px;letter-spacing:.3em;color:var(--ink-soft)}
+  .ed-sig b{color:var(--red)}
+
+  /* ============ 报尾 ============ */
+  .colophon{
+    border-top:3px double var(--ink);margin-top:8px;padding:20px 2px 46px;
+    display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;
+    font-size:11.5px;color:var(--muted);letter-spacing:.12em;
+  }
+  .colophon a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid var(--hair)}
+  .colophon a:hover{color:var(--red);border-bottom-color:var(--red)}
+  .colophon .kin{color:var(--red)}
+
+  /* ============ 空周状态 ============ */
+  body.is-empty main,body.is-empty .folio,body.is-empty .briefing,body.is-empty .side-note{display:none}
+  .empty-notice{display:none;text-align:center;padding:84px 0 96px}
+  body.is-empty .empty-notice{display:block}
+  .empty-notice .eh{
+    display:inline-block;border:3px double var(--red);color:var(--red);
+    font-size:clamp(34px,7vw,58px);font-weight:900;letter-spacing:.3em;text-indent:.3em;
+    padding:22px 34px;transform:rotate(-2deg);
+  }
+  .empty-notice .ep{margin-top:26px;font-size:14px;color:var(--ink-soft);letter-spacing:.1em;line-height:2}
+
+  /* ============ 打印 ============ */
+  @media print{
+    body{background:#fff}
+    body::before{display:none}
+    .folio{position:static}
+    .rv{opacity:1;transform:none}
+    .t-bar .t-fill{width:var(--w)!important}
+    .page{padding:26px 0}
+    .lead-more{display:none}
+    .lead-deck.clamped{display:block;-webkit-line-clamp:unset}
+    a[href]::after{content:""}
+  }
+</style>
+</head>
+<body>
+<div class="paper">
+
+  <header class="masthead">
+    <div class="mast-top">
+      <span id="mIssue">第 2026-37 期</span>
+      <span class="mast-motto">记录每一天 <span class="red">·</span> 周报自动生成</span>
+      <span>由 <span class="red">WorkBuddy</span> 印制</span>
+    </div>
+    <div class="mast-title">
+      <div class="mast-over">The Weekly Ledger</div>
+      <h1>工作周讯<span class="dot">。</span></h1>
+      <div class="mast-sub">
+        <span id="mRange">09/07 – 09/13</span><span class="sep">◆</span>
+        <span id="mTeam">产品研发组</span><span class="sep">◆</span>
+        <span id="mDateLine">2026 年 9 月 14 日 · 星期一</span>
+      </div>
+    </div>
+    <div class="doublerule" role="presentation"></div>
+
+    <div class="briefing" aria-label="本期提要">
+      <span class="label">本期提要</span>
+      <ul id="briefList"></ul>
+    </div>
+
+    <nav class="folio" id="folio" aria-label="版面目录"></nav>
+  </header>
+
+  <main>
+    <div class="empty-notice">
+      <div class="eh">本周无记录</div>
+      <p class="ep">未检索到上周日志文件。<br>安装周报自动化后，每日记录会自动汇总成刊。</p>
+    </div>
+
+    <section class="page" id="sec-lead">
+      <div class="page-kicker"><span class="p-cn">头版</span><span class="p-en">Front Page</span><span class="p-no">壹</span></div>
+      <div class="lead-grid">
+        <article class="lead rv" id="leadArticle">
+          <span class="lead-kicker" id="leadKicker">本周头条</span>
+          <h2 id="leadTitle"></h2>
+          <div class="lead-byline" id="leadByline"></div>
+          <p class="lead-deck clamped dropcap" id="leadDeck"></p>
+          <button class="lead-more" id="leadMore" type="button">展开全文 ▾</button>
+        </article>
+        <aside class="side-briefs rv">
+          <h3>要闻简报</h3>
+          <ol id="sideList"></ol>
+          <div class="side-note" id="sideNote"></div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="page" id="sec-week">
+      <div class="page-kicker"><span class="p-cn">第二版</span><span class="p-en">The Week in Brief</span><span class="p-no">一周要闻</span></div>
+      <div class="col-flow" id="dayFlow"></div>
+    </section>
+
+    <section class="page" id="sec-numbers">
+      <div class="page-kicker"><span class="p-cn">数字版</span><span class="p-en">By the Numbers</span><span class="p-no">据实统计</span></div>
+      <div class="stat-line rv" id="ledgerRow"></div>
+      <div class="num-grid">
+        <div class="rv" data-fx="bars">
+          <h3 class="num-h">工作类型分布 <span class="en">Composition</span></h3>
+          <div id="typeBars"></div>
+        </div>
+        <div class="rv" data-fx="trend">
+          <h3 class="num-h">近五周记录 <span class="en">Five-Week Trend</span></h3>
+          <svg class="trend-svg" id="trendSvg" viewBox="0 0 320 168" role="img" aria-label="近五周记录天数折线图"></svg>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="sec-wire">
+      <div class="page-kicker"><span class="p-cn">图片电稿</span><span class="p-en">The Wire</span><span class="p-no">资料汇总</span></div>
+      <div class="wire-strip rv" id="wireStrip"></div>
+    </section>
+
+    <section class="page" id="sec-opinion">
+      <div class="page-kicker"><span class="p-cn">社论</span><span class="p-en">Editorial</span><span class="p-no">下周计划</span></div>
+      <div class="editorial rv">
+        <p class="ed-lede" id="edLede"></p>
+        <ol class="ed-list" id="edList"></ol>
+        <div class="ed-sig">—— <b>工作周讯</b> 编辑部</div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="colophon">
+    <span id="cGen">本报由 WorkBuddy 于 2026-09-14 08:00 印制</span>
+    <span>依据日志 <span class="kin" id="cSrc">.workbuddy/memory/</span> 汇编 · <a href="index.html">返回版本目录</a></span>
+  </footer>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   ▼▼▼ 数据罐头 DATA CARTRIDGE ▼▼▼
+   生成新周报：替换此对象即可。days 为唯一必填来源，
+   typeDistribution / 记录天数 / 完整度等均由模板自动推导。
+   与 orbit-instrument.html、stage-programme.html 的罐头同构，可互换。
+═══════════════════════════════════════════════════════════════ */
+const REPORT_DATA = {
+  meta: { year: 2026, week: 37, range: "09/07 – 09/13", team: "产品研发组",
+          generatedAt: "2026-09-14 08:00", source: ".workbuddy/memory/" },
+  days: [
+    { date:"09/07", weekday:"周一", status:"work", summary:"完成周报模块数据层重构", types:["开发","会议","文档"],
+      morning:[ {type:"会议",text:"参加 Q4 规划对齐会，认领周报可视化需求"},
+                {type:"开发",text:"搭建报表数据聚合层，打通日志读取管线"} ],
+      afternoon:[ {type:"开发",text:"完成周报模板渲染引擎初版，支持三类图表"},
+                  {type:"文档",text:"整理数据接口约定，输出接入文档 v0.1"} ] },
+    { date:"09/08", weekday:"周二", status:"work", summary:"联调周历热力图与统计口径", types:["开发","测试","会议"],
+      morning:[ {type:"开发",text:"实现周历热力图组件，支持已记录 / 缺失 / 周末三态"},
+                {type:"测试",text:"对日志解析边界情况补充 12 个用例"} ],
+      afternoon:[ {type:"会议",text:"与数据组对齐统计口径，确定缺勤判定规则"},
+                  {type:"开发",text:"修复空日志目录时的崩溃，补充警告日志"} ] },
+    { date:"09/09", weekday:"周三", status:"work", summary:"发布内部试用版，收集首轮反馈", types:["测试","文档","会议","开发"],
+      morning:[ {type:"测试",text:"完成三台设备兼容性回归，修复两处样式塌陷"},
+                {type:"文档",text:"撰写试用指引与常见问题说明"} ],
+      afternoon:[ {type:"会议",text:"组织内部试用宣讲，收集 9 条反馈"},
+                  {type:"开发",text:"按反馈调整趋势图坐标轴与配色"} ] },
+    { date:"09/10", weekday:"周四", status:"miss", summary:"", types:[], morning:[], afternoon:[] },
+    { date:"09/11", weekday:"周五", status:"work", summary:"周报模块通过评审，进入下阶段", types:["会议","开发","学习","文档"],
+      morning:[ {type:"会议",text:"周报模块技术评审通过，确认开放三套模板方向"},
+                {type:"开发",text:"沉淀模板参数化方案，支持自定义配色"} ],
+      afternoon:[ {type:"学习",text:"研究 CSS 竖排与分栏排版在报表中的应用"},
+                  {type:"文档",text:"更新路线图，标注下周里程碑"} ] },
+    { date:"09/12", weekday:"周六", status:"weekend", summary:"", types:[], morning:[], afternoon:[] },
+    { date:"09/13", weekday:"周日", status:"weekend", summary:"", types:[], morning:[], afternoon:[] }
+  ],
+  highlights: [
+    { level:"gold",   title:"周报模块通过技术评审，确定开放三套模板方向",
+      detail:"评审会确认了参数化配色与模板选择方案，模块进入推广准备阶段，预计下周发布到技能市场，供更多团队开箱使用。" },
+    { level:"green",  title:"日志读取管线打通，端到端三秒生成周报",
+      detail:"从读取 .workbuddy/memory 下的每日日志，到渲染出完整 HTML 周报，全链路首次跑通，平均生成耗时控制在三秒以内。" },
+    { level:"purple", title:"内部试用收集九条反馈，全部纳入排期",
+      detail:"首轮试用覆盖三个团队，反馈集中在移动端阅读与打印两个场景，已逐条建立跟进项，并入下周迭代计划。" }
+  ],
+  materials: [
+    { type:"img",   name:"周报模块架构草图",   meta:"09/07 · 白板照片" },
+    { type:"doc",   name:"数据接口约定 v0.1", meta:"09/07 · 接入文档" },
+    { type:"img",   name:"热力图三状态截图",   meta:"09/08 · 界面截图" },
+    { type:"video", name:"内部试用宣讲录像",   meta:"09/09 · 12 分钟" },
+    { type:"doc",   name:"试用反馈汇总表",     meta:"09/09 · 9 条记录" },
+    { type:"doc",   name:"评审结论与路线图",   meta:"09/11 · 会议纪要" }
+  ],
+  activities: [
+    { name:"代码提交", count:12 }, { name:"会议沟通", count:6 }, { name:"缺陷修复", count:5 },
+    { name:"文档产出", count:4 },  { name:"用例执行", count:26 }
+  ],
+  trend: [ {week:"W33",value:3},{week:"W34",value:4},{week:"W35",value:2},{week:"W36",value:5},{week:"W37",value:4} ],
+  plan: [
+    { priority:1, title:"发布三套模板皮肤至技能市场", note:"完成文档与示例，开放社区试用" },
+    { priority:2, title:"补齐移动端阅读与打印样式",   note:"针对首轮反馈的两处样式塌陷重点验证" },
+    { priority:3, title:"启动自动化推送灰度",         note:"先覆盖两个团队，验证周一推送链路" }
+  ]
+};
+/* ═══════════════════════ ▲▲▲ 数据罐头结束 ▲▲▲ ═══════════════════════ */
+
+(function(){
+  "use strict";
+  const D = REPORT_DATA;
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ?empty=1 演示：模拟"全周无记录"的真实空数据 */
+  if (new URLSearchParams(location.search).has("empty")) {
+    D.days = D.days.map((d,i)=>({ date:d.date, weekday:d.weekday, status:i>=5?"weekend":"miss",
+      summary:"", types:[], morning:[], afternoon:[] }));
+    D.highlights = []; D.materials = []; D.activities = []; D.trend = []; D.plan = [];
+  }
+
+  /* ---- 工具 ---- */
+  function h(tag, attrs, ...children){
+    const n = document.createElement(tag);
+    if (attrs) for (const k in attrs){
+      const v = attrs[k];
+      if (v == null) continue;
+      if (k === "class") n.className = v;
+      else if (k === "text") n.textContent = v;
+      else if (k.startsWith("on")) n.addEventListener(k.slice(2), v);
+      else n.setAttribute(k, v);
+    }
+    for (const c of children){ if (c == null) continue; n.append(c.nodeType ? c : document.createTextNode(c)); }
+    return n;
+  }
+  const SVGNS = "http://www.w3.org/2000/svg";
+  function sv(tag, attrs){
+    const n = document.createElementNS(SVGNS, tag);
+    if (attrs) for (const k in attrs){ if (attrs[k] != null) n.setAttribute(k, attrs[k]); }
+    return n;
+  }
+
+  /* ---- 推导统计 ---- */
+  const workdays = D.days.filter(d => d.status !== "weekend");
+  const recorded = D.days.filter(d => d.status === "work");
+  const miss = D.days.filter(d => d.status === "miss");
+  const entries = [];
+  D.days.forEach(d => { (d.morning||[]).forEach(e=>entries.push(e)); (d.afternoon||[]).forEach(e=>entries.push(e)); });
+  const typeMap = {};
+  entries.forEach(e => { typeMap[e.type] = (typeMap[e.type]||0)+1; });
+  const typeDist = Object.keys(typeMap).map(k=>({name:k, count:typeMap[k]}))
+    .sort((a,b)=>b.count-a.count);
+  const totalEntries = entries.length;
+  const rate = workdays.length ? Math.round(recorded.length / workdays.length * 100) : 0;
+
+  /* ---- 空周判定 ---- */
+  const isEmpty = new URLSearchParams(location.search).has("empty")
+    || (recorded.length === 0 && totalEntries === 0 && D.highlights.length === 0);
+  if (isEmpty) document.body.classList.add("is-empty");
+
+  /* ---- 报头 ---- */
+  const issue = document.getElementById("mIssue");
+  issue.textContent = `第 ${D.meta.year}-${D.meta.week} 期 · Vol.${D.meta.week}`;
+  document.getElementById("mRange").textContent = D.meta.range;
+  document.getElementById("mTeam").textContent = D.meta.team || "编辑部";
+  const genDate = (D.meta.generatedAt||"").split(" ")[0] || "";
+  const genWd = ["日","一","二","三","四","五","六"][new Date(genDate).getDay()] || "";
+  document.getElementById("mDateLine").textContent =
+    genDate ? genDate.replace(/-/g," / ") + " 印制" : D.meta.range;
+  document.title = `${D.meta.year}-W${D.meta.week} · 工作周讯`;
+  document.getElementById("cGen").textContent =
+    `本报由 WorkBuddy 于 ${D.meta.generatedAt || "本周一"} 印制`;
+  document.getElementById("cSrc").textContent = D.meta.source || "";
+
+  /* 本期提要 = 亮点标题 */
+  const briefList = document.getElementById("briefList");
+  (D.highlights.length ? D.highlights : [{title:"暂无记录"}]).slice(0,3).forEach(x=>{
+    briefList.append(h("li", {text:x.title}));
+  });
+
+  /* ---- 版面目录 ---- */
+  const folio = document.getElementById("folio");
+  const pages = [
+    ["sec-lead","头版","FRONT"],["sec-week","一周要闻","BRIEF"],
+    ["sec-numbers","数字版","DATA"],["sec-wire","图片电稿","WIRE"],
+    ["sec-opinion","社论","OPINION"]
+  ];
+  const folioBtns = pages.map(([id,cn,en])=>{
+    const b = h("button", {class:"f-item", type:"button", "data-target":id, "aria-label":"跳转到"+cn},
+      h("span",{text:cn}), h("span",{class:"f-en","text":en}));
+    b.addEventListener("click", ()=>{
+      document.getElementById(id).scrollIntoView({behavior: reduced ? "auto":"smooth"});
+    });
+    folio.append(b);
+    return b;
+  });
+  const secIO = new IntersectionObserver(es=>{
+    es.forEach(en=>{
+      if (!en.isIntersecting) return;
+      folioBtns.forEach(b=>b.classList.toggle("active", b.dataset.target === en.target.id));
+    });
+  }, {rootMargin:"-30% 0px -60% 0px"});
+  pages.forEach(([id])=>secIO.observe(document.getElementById(id)));
+
+  /* ---- 头版头条 ---- */
+  const lead = (D.highlights && D.highlights[0]) || null;
+  if (lead){
+    document.getElementById("leadTitle").append(h("span",{class:"hl",text:lead.title}));
+    document.getElementById("leadByline").append(
+      h("b",{text:"本报记者"}), document.createTextNode(" 据一周日志综合报道")
+    );
+    document.getElementById("leadDeck").textContent =
+      lead.detail + ` 本周共记录 ${recorded.length} 个工作日、${totalEntries} 项工作，编辑部的观察如上，数据详见数字版。`;
+  } else {
+    document.getElementById("leadKicker").textContent = "本周头条";
+    document.getElementById("leadTitle").textContent = "本周暂无头条";
+    document.getElementById("leadDeck").textContent = "未检索到可刊载的成果记录。";
+    document.getElementById("leadMore").style.display = "none";
+  }
+  const leadMore = document.getElementById("leadMore");
+  const leadDeck = document.getElementById("leadDeck");
+  leadMore.addEventListener("click", ()=>{
+    const open = leadDeck.classList.toggle("clamped") === false;
+    leadMore.textContent = open ? "收起全文 ▴" : "展开全文 ▾";
+  });
+
+  /* 要闻简报（其余亮点） */
+  const sideList = document.getElementById("sideList");
+  const cnOrd = ["二","三","四","五"];
+  (D.highlights||[]).slice(1).forEach((x,i)=>{
+    sideList.append(h("li", {},
+      h("span",{class:"sb-idx", text:"要闻 " + (cnOrd[i]||i+2)}),
+      h("div",{class:"sb-t", text:x.title})
+    ));
+  });
+  if ((D.highlights||[]).length <= 1) sideList.append(h("li",{},h("span",{class:"sb-idx",text:"要闻 二"}),h("div",{class:"sb-t",text:"暂无更多要闻"})));
+  document.getElementById("sideNote").textContent =
+    `据数字版统计：本周记录完整度 ${rate}%，共 ${totalEntries} 项工作、涉及 ${typeDist.length} 类活动。`;
+
+  /* ---- 第二版 · 一周要闻 ---- */
+  const flow = document.getElementById("dayFlow");
+  D.days.forEach(d=>{
+    const b = h("article",{class:"brief" + (d.status==="miss"?" is-miss":d.status==="weekend"?" is-weekend":"")},
+      h("div",{class:"brief-head"},
+        h("span",{class:"brief-day",text:d.weekday}),
+        h("span",{class:"brief-date",text:d.date})
+      )
+    );
+    if (d.status === "miss"){
+      b.append(h("div",{class:"no-copy",text:"本日无稿 · 暂无记录"}));
+    } else if (d.status === "weekend"){
+      b.append(h("div",{class:"no-copy",text:"休版 · 周末"}));
+    } else {
+      b.append(h("p",{class:"brief-sum",text:d.summary || "（无当日摘要）"}));
+      const ul = h("ul",{class:"brief-items"});
+      (d.morning||[]).forEach(e=>ul.append(h("li",{text:e.text})));
+      (d.afternoon||[]).forEach(e=>ul.append(h("li",{text:e.text})));
+      b.append(ul);
+      if ((d.types||[]).length){
+        b.append(h("div",{class:"brief-note", text:"注：" + d.types.map(t=>`${t} ×${(d.morning||[]).concat(d.afternoon||[]).filter(e=>e.type===t).length}`).join(" · ")}));
+      }
+    }
+    flow.append(b);
+  });
+
+  /* ---- 数字版：铅字数据行 ---- */
+  const ledger = document.getElementById("ledgerRow");
+  const cells = [
+    {num:recorded.length, unit:"天", lbl:"工作日记录", cls:""},
+    {num:rate, unit:"%", lbl:"记录完整度", cls:""},
+    {num:totalEntries, unit:"项", lbl:"工作事项", cls:""},
+    {num:miss.length, unit:"天", lbl:"未记录", cls:miss.length?"alert":""}
+  ];
+  const numEls = [];
+  cells.forEach(c=>{
+    const num = h("span",{class:"s-num "+c.cls, "data-target":c.num}, "0");
+    numEls.push(num);
+    ledger.append(h("div",{class:"s-item"},
+      h("div",{class:"s-top"}, num, h("span",{class:"s-unit",text:c.unit})),
+      h("span",{class:"s-lbl",text:c.lbl}),
+      h("span",{class:"s-sep"})
+    ));
+  });
+
+  /* 类型分布墨条 */
+  const barsBox = document.getElementById("typeBars");
+  const maxType = Math.max(1, ...typeDist.map(t=>t.count));
+  const barEls = [];
+  typeDist.forEach((t,i)=>{
+    const pct = Math.round(t.count / totalEntries * 100);
+    const fill = h("span",{class:"t-fill"});
+    const row = h("div",{class:"type-bar"+(i===0?" top":"")},
+      h("span",{class:"t-name",text:t.name}),
+      h("span",{class:"t-track"}, fill),
+      h("span",{class:"t-val", text:`${t.count} 项 · ${pct}%`})
+    );
+    fill.dataset.w = (t.count/maxType*100).toFixed(1) + "%";
+    barEls.push(fill);
+    barsBox.append(row);
+  });
+  if (!typeDist.length) barsBox.append(h("div",{class:"wire-empty",text:"本周无类型数据"}));
+
+  /* 五周趋势折线 */
+  const trendSvg = document.getElementById("trendSvg");
+  function buildTrend(){
+    trendSvg.textContent = "";
+    const W=320,H=168,padL=14,padR=14,padT=26,padB=30;
+    const iw=W-padL-padR, ih=H-padT-padB;
+    const vals=(D.trend||[]).map(t=>t.value);
+    const maxV=Math.max(1,...vals);
+    const step=iw/Math.max(1,(D.trend.length-1||1));
+    for(let g=0; g<=maxV; g++){
+      const y=padT+ih-(g/maxV)*ih;
+      trendSvg.append(sv("line",{class:g===0?"axis":"gridline",x1:padL,y1:y,x2:W-padR,y2:y}));
+      const gl=sv("text",{x:padL-4,y:y+4,"text-anchor":"start","font-size":"9"}); gl.textContent=String(g);
+      trendSvg.append(gl);
+    }
+    const pts=(D.trend||[]).map((t,i)=>[padL+step*i, padT+ih-(t.value/maxV)*ih]);
+    const line=sv("polyline",{class:"line",points:pts.map(p=>p.join(",")).join(" ")});
+    trendSvg.append(line);
+    if(!reduced){
+      const len=line.getTotalLength?line.getTotalLength():0;
+      if(len){ line.style.strokeDasharray=len; line.style.strokeDashoffset=len;
+        line.style.transition="stroke-dashoffset 1.4s ease .2s"; }
+    }
+    (D.trend||[]).forEach((t,i)=>{
+      const [x,y]=pts[i];
+      const cur=i===D.trend.length-1;
+      trendSvg.append(sv("circle",{class:"pt"+(cur?" cur":""),cx:x,cy:y,r:cur?4:3}));
+      const vl=sv("text",{class:"v-label"+(cur?" v-cur":""),x:x,y:y-9,"text-anchor":"middle"}); vl.textContent=String(t.value);
+      trendSvg.append(vl);
+      const wl=sv("text",{x:x,y:H-8,"text-anchor":"middle"}); wl.textContent=t.week;
+      trendSvg.append(wl);
+    });
+    requestAnimationFrame(()=>{ if(!reduced) line.style.strokeDashoffset=0; });
+  }
+
+  /* ---- 图片电稿 ---- */
+  const wire = document.getElementById("wireStrip");
+  const WIRE_ICON = {
+    img(){ return [sv("rect",{x:10,y:16,width:100,height:64,fill:"none",stroke:"currentColor","stroke-width":"1.4"}),
+      sv("path",{d:"M22 66 L44 44 L58 58 L70 46 L96 66",fill:"none",stroke:"currentColor","stroke-width":"1.4"}),
+      sv("circle",{cx:82,cy:32,r:5,fill:"none",stroke:"currentColor","stroke-width":"1.4"})]; },
+    video(){ return [sv("rect",{x:10,y:16,width:100,height:64,fill:"none",stroke:"currentColor","stroke-width":"1.4"}),
+      sv("path",{d:"M52 40 L68 48 L52 56 Z",fill:"currentColor"})]; },
+    doc(){ return [sv("rect",{x:22,y:12,width:76,height:72,fill:"none",stroke:"currentColor","stroke-width":"1.4"}),
+      sv("line",{x1:32,y1:28,x2:88,y2:28,stroke:"currentColor","stroke-width":"1.2"}),
+      sv("line",{x1:32,y1:40,x2:88,y2:40,stroke:"currentColor","stroke-width":"1.2"}),
+      sv("line",{x1:32,y1:52,x2:72,y2:52,stroke:"currentColor","stroke-width":"1.2"}),
+      sv("line",{x1:32,y1:64,x2:80,y2:64,stroke:"currentColor","stroke-width":"1.2"})]; }
+  };
+  const wireTagCn = {img:"图",video:"影",doc:"文"};
+  (D.materials||[]).slice(0,6).forEach(m=>{
+    const icon=sv("svg",{viewBox:"0 0 120 96"});
+    (WIRE_ICON[m.type]||WIRE_ICON.doc)().forEach(p=>icon.append(p));
+    const item=h("a",{class:"wire-item",href:m.url||"javascript:void(0)",onclick:e=>{ if(!m.url) e.preventDefault(); }},
+      h("figure",{class:"wire-frame"},
+        h("span",{class:"wire-tag",text:wireTagCn[m.type]||"稿"}), icon),
+      h("figcaption",{}, h("div",{class:"wire-cap",text:m.name}), h("div",{class:"wire-meta",text:m.meta||""}))
+    );
+    wire.append(item);
+  });
+  if(!(D.materials||[]).length) wire.append(h("div",{class:"wire-empty",text:"本周无电稿"}));
+
+  /* ---- 社论 · 下周计划 ---- */
+  document.getElementById("edLede").textContent =
+    `上周共记录 ${recorded.length} 个工作日、${totalEntries} 项工作。基于以上进展，编辑部认为，下一周应依次关注以下 ${ (D.plan||[]).length || "三" } 件事——`;
+  const seals={1:["急",""],2:["要","s2"],3:["缓","s3"]};
+  const edList=document.getElementById("edList");
+  const edOrd=["一","二","三","四","五"];
+  (D.plan||[]).forEach((p,i)=>{
+    const [sc,scCls]=seals[p.priority]||seals[3];
+    edList.append(h("li",{},
+      h("span",{class:"ed-seal "+scCls,"aria-label":"优先级"+p.priority,text:sc}),
+      h("div",{class:"ed-body"},
+        h("h4",{}, h("span",{class:"ord",text:edOrd[i]||i+1+"、"}), document.createTextNode(p.title)),
+        h("p",{text:p.note||""}))
+    ));
+  });
+  if(!(D.plan||[]).length) edList.append(h("li",{},h("div",{class:"ed-body"},h("h4",{text:"编辑部暂无议程"}),h("p",{text:"记录工作后，将自动生成下周建议。"}))));
+
+  /* ---- 油墨显影 + 数字滚动 + 墨条 + 折线 ---- */
+  let trendDrawn=false;
+  function startCounter(el){
+    const target=+el.dataset.target||0;
+    if(reduced){ el.firstChild.textContent=String(target); return; }
+    const t0=performance.now(), dur=900;
+    function tick(t){
+      const p=Math.min(1,(t-t0)/dur), e=1-Math.pow(1-p,3);
+      el.firstChild.textContent=String(Math.round(target*e));
+      if(p<1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+  function fillBars(){ barEls.forEach(f=>{ f.style.width=f.dataset.w; }); }
+  function drawTrend(){ if(!trendDrawn){ trendDrawn=true; buildTrend(); } }
+
+  const rvs=[...document.querySelectorAll(".rv")];
+  if(reduced){ rvs.forEach(e=>e.classList.add("on")); fillBars(); drawTrend();
+    numEls.forEach(n=>n.firstChild.textContent=n.dataset.target);
+  } else {
+    const io=new IntersectionObserver(es=>{
+      es.forEach(en=>{
+        if(!en.isIntersecting) return;
+        const el=en.target;
+        const sibs=[...el.parentElement.children].filter(c=>c.classList&&c.classList.contains("rv"));
+        el.style.transitionDelay=Math.min(sibs.indexOf(el)*90,360)+"ms";
+        el.classList.add("on");
+        if(el.dataset.fx==="bars") fillBars();
+        if(el.dataset.fx==="trend") drawTrend();
+        io.unobserve(el);
+      });
+    },{threshold:.16});
+    rvs.forEach(e=>io.observe(e));
+
+    const cio=new IntersectionObserver(es=>{
+      es.forEach(en=>{ if(en.isIntersecting){ startCounter(en.target); cio.unobserve(en.target); } });
+    },{threshold:.5});
+    numEls.forEach(n=>cio.observe(n));
+
+    /* 兜底：后台标签页等环境会暂停 IntersectionObserver，确保内容最终可见 */
+    setTimeout(()=>{
+      rvs.forEach(e=>e.classList.add("on"));
+      fillBars(); drawTrend();
+      numEls.forEach(n=>{ n.firstChild.textContent=n.dataset.target; });
+    },4000);
+  }
+})();
+</script>
+</body>
+</html>
