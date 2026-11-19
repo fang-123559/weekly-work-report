@@ -1,8 +1,10 @@
 # 每周工作周报 Weekly Work Report 📊
 
-一个**开箱即用的 Skill 模板**：让 AI 每周一自动读取你上周的工作日志，生成**美观直观的可视化 HTML 周报**——统计卡片、周历热力图、工作类型分布、成果亮点、趋势图表、下周计划，一页看全。
+一个面向 AI Agent 的**工作周报生成 Skill**。读取本地上周工作日志，整理工作统计、成果亮点、趋势和计划，生成可在浏览器查看的 HTML 周报。可按需触发，也可配置每周一自动运行。
 
-> 记录每一天，周报自动生成
+[《工作周讯》](examples/editorial-ledger-sample.html) · [《七日仪》](examples/orbit-instrument-sample.html) · [《本周上演》](examples/stage-programme-sample.html) · [执行规则](SKILL.md)
+
+以上为脱敏 HTML 示例。经典蓝色版为默认样式。使用时提供可读取的本地工作日志目录，例如 `.workbuddy/memory/`。缺少日志的日期标为「暂无记录」。
 
 ---
 
@@ -32,7 +34,7 @@
 ## 🖼️ 效果预览
 
 <p align="center">
-  <img src="examples/weekly-report-sample.png" width="420"/>
+  <a href="examples/weekly-report-sample.html"><img src="examples/weekly-report-sample.png" width="420" alt="经典蓝色版工作周报脱敏示例截图"/></a>
 </p>
 
 > 示例为脱敏后的周报展示（[weekly-report-sample.html](examples/weekly-report-sample.html)），真实数据由你的工作日志自动填充。
